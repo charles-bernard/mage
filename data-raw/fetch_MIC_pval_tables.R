@@ -10,7 +10,7 @@ library(stringr);
 library(readr);
 library(devtools);
 
-# Get all lines of the source code of the page containing the links to the pval-tables
+# Get all the lines of the source code of the page containing the links to the pval-tables
 # ------------------------------------------------------------------------------------
 website <- "http://www.exploredata.net"
 internet_directory <- file.path(website, "Downloads/P-Value-Tables");
@@ -33,12 +33,13 @@ pval_tables <- list();
 for(i in 1:n_table) {
   curr_file <- read.csv(downloadable_link[i], sep = ",");
   end <- length(curr_file$X) - 1;
-  pval_tables[[i]] <- data.table(MIC = curr_file$X[11:end],
-                           pval = curr_file$X.1[11:end],
-                           conf = curr_file$X.2[11:end]);
+  table <- data.frame(MIC = curr_file$X[11:end],
+                      pval = curr_file$X.1[11:end],
+                      conf = curr_file$X.2[11:end]);
+  pval_tables[[i]] <- apply(table, 2, as.numeric)
 }
 names(pval_tables) <- sample_size;
 
 # ------------------------------------------------------------------------------------
 # Save object in mage/R/sysdata.rda
-use_data(pval_tables, internal = TRUE);
+use_data(sample_size, pval_tables, internal = TRUE, overwrite = TRUE);
