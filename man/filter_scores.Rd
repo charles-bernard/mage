@@ -4,20 +4,34 @@
 \alias{filter_scores}
 \title{filter_scores}
 \usage{
-filter_scores(x, on = "MIC", pval = NULL, threshold = 0.4)
+filter_scores(x, on = "MIC", pval = NULL, thresh = 0.4)
 }
 \arguments{
 \item{x}{data.frame, table of scores}
 
-\item{on}{variable name used for the threshold (set to either \code{"MIC"} or \code{"pval"})}
+\item{on}{variable used for the threshold (accepts only \code{"MIC"} or \code{"pval"})}
 
-\item{pval}{a numeric vector of pval (only if \code{on = "pval"})}
+\item{pval}{numeric vector of p-values corresponding to the MIC scores in \code{x} (only if \code{on = "pval"})}
 
-\item{threshold}{the value of the threshold}
+\item{thresh}{value of the threshold}
 }
 \value{
 Returns a filtered table of scores
 }
 \description{
-Filter table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
+Filters a table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
+}
+\details{
+if \code{on = "MIC"}, \code{filter_scores} will retain any association whose MIC >= \code{threshold}
+
+else if \code{on = "pval"}, \code{filter_scores} will retain any association whose p-value <= \code{threshold}
+}
+\examples{
+\dontrun{
+scores_tab <- compute_scores(my_gene_exp_matrix, n.cores = 6)
+pvalues <- assign_pval(scores_tab$`MIC (strength)`, nb_cells = 96)
+signif_scores_tab <- filter_scores(scores_tab, on = "pval", 
+                                   pval = pvalues, threshold = 0.05)
+}                                    
+
 }

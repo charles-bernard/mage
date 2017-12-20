@@ -7,10 +7,10 @@
 adjust_pval(pval)
 }
 \arguments{
-\item{pval}{numeric vector of p_values}
+\item{pval}{numeric vector of p-values}
 }
 \value{
-Returns a vector of adjusted p-values
+Returns a numeric vector of adjusted p-values
 }
 \description{
 Adjust p-values using FDR method (Benjamini & Hochberg, 1995)
