@@ -1,10 +1,8 @@
-library(stats)
-
 # mage R package
 
 # This file regroups functions to:
 #   1. Compute p-values for the MIC scores
-#   1. Filter the matrix based on a MIC threshold of significance
+#   1. Filter the matrix based on a threshold of significance
 #   2. Standardize the matrix (using zscore)
 
 
@@ -47,7 +45,13 @@ assign_pval <- function(MIC_scores,
   pval_data <- load(system.file("R/sysdata.rda", package = "mage"));
   closest_sample_size_ix <- which.min(abs(as.integer(sample_size) - nb_cells));
   pval_tab <- pval_tables[[closest_sample_size_ix]];
-
+  
+  # Print the absolute difference btw nb_cells and sample_size
+  # ----------------------------------------------------------------------
+  print(sprintf("abs(sample_size - nb_cells) = %d", 
+          abs(as.integer(sample_size[closest_sample_size_ix]) - nb_cells)));
+  print("If this difference is too big, consider ignoring these p-values ...")
+  
   # Get the boundaries of the table
   # ----------------------------------------------------------------------
   pval_tab_max_MIC <- pval_tab[1, 1];
@@ -96,37 +100,89 @@ assign_pval <- function(MIC_scores,
 #' @param pval numeric vector of p-values
 #'
 #' @return
-#' Returns a vector of adjusted p-values
+#' Returns a numeric vector of adjusted p-values
 #'
 adjust_pval <- function(pval) {
-  adjusted_p_values <- p.adjust(p_values, method = "BH");
-  return(adjusted_p_values);
+  adjusted_pval <- stats::p.adjust(pval, method = "BH");
+  return(adjusted_pval);
 }
 
 #' @title filter_scores
 #'
 #' @description
-#' Filter table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
+#' Filters a table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
 #'
 #' @param x data.frame, table of scores
-#' @param on variable used for the threshold (set to either \code{"MIC"} or \code{"pval"})
-#' @param pval numeric vector of p-values (only if \code{on = "pval"})
-#' @param threshold value of the threshold
+#' @param on variable used for the threshold (accepts only \code{"MIC"} or \code{"pval"})
+#' @param pval numeric vector of p-values corresponding to the MIC scores in \code{x} (only if \code{on = "pval"})
+#' @param thresh value of the threshold
 #'
 #' @return
 #' Returns a filtered table of scores
 #'
+#' @examples
+#' \dontrun{
+#' scores_tab <- compute_scores(my_gene_exp_matrix, n.cores = 6)
+#' pvalues <- assign_pval(scores_tab$`MIC (strength)`, nb_cells = 96)
+#' signif_scores_tab <- filter_scores(scores_tab, on = "pval", 
+#'                                    pval = pvalues, threshold = 0.05)
+#' }                                    
+#'
+#' @details
+#' if \code{on = "MIC"}, \code{filter_scores} will retain any association whose MIC >= \code{threshold}
+#' 
+#' else if \code{on = "pval"}, \code{filter_scores} will retain any association whose p-value <= \code{threshold}
+#'   
 filter_scores <- function(x,
                    on = 'MIC',
                    pval = NULL,
-                   threshold = 0.4) {
+                   thresh = 0.4) {
+  # To do: check all conditions
+  
+  if(on == "MIC") {
+    if(thresh < 0 || thresh > 1) {
+      stop("A MIC score is defined in [0;1]");
+    }
+    retained_ix <- which(x[, 3] >= thresh);
+  } else if(on == "pval") {
+    if(is.null(pval)) {
+      stop("argument pval missing");
+    }
+    if(length(pval) != nrow(x)) {
+      stop("length(pval) must be equal to nrow(x)");
+    }
+    retained_ix <- which(pval <= thresh);
+  } else {
+    stop("on argument must be set to either \"MIC\" or \"pval\"");
+  }
+  
+  return(x[retained_ix, ]);
+}
 
+#' @title standardize_scores
+#'
+#' @description
+#' Standardize each column of the table of scores via the Zscore: \deqn{x = ( x - mean(column) ) / ( std(column) )}
+#'
+#' @param x data.frame, table of scores
+#' 
+#' @return
+#' returns a standardized table of scores
+standardize_scores <- function(x) {
+  std_x <- data.frame(scale(x[, 3:ncol(x)]));
+  
+  possible_NA_col <- apply(std_x, 2, function(i) any(is.na(i)));
+  if(length(which(possible_NA_col == TRUE)) > 0) {
+    std_x <- std_x[, -(which(possible_NA_col == TRUE))];
+  }
+  
+  return(data.frame(x[, 1:2], std_x));
 }
 
 
-file <- "/media/charles/Seagate Expansion Drive/Curie/Analyses/Analyses_CDD/MAGE/A471/794_remaining_mvg/794vg_Mage_out/1-Association_Scores/0-scores.csv";
-data <- fread(file, sep = ",", header = T);
-MIC_scores <- data[,3][[1]];
-nb_cells <- 96;
+# file <- "/media/charles/Seagate Expansion Drive/Curie/Analyses/Analyses_CDD/MAGE/A471/794_remaining_mvg/794vg_Mage_out/1-Association_Scores/0-scores.csv";
+# data <- fread(file, sep = ",", header = T);
+# MIC_scores <- data[,3][[1]];
+# nb_cells <- 96;
 
 
