@@ -1,15 +1,35 @@
-Package: mage
-Type: Package
-Title: Mine Associated Gene Expressions (from single-cell Rna Seq data)
-Version: 0.1.0
-Author@R: person("Charles", "Bernard", email = "charles.bernard@curie.fr", role = c("aut", "cre"))
-Description: The purpose of scRnaSeq_MAGE is to capture, and more essentially to
- classify, any association between 2 gene expressions in a Single Cell Rna Seq
- Dataset.
+Package:
+    mage
+Type:
+    Package
+Version:
+    0.1.0
+Title:
+    Mine Associated Gene Expressions (from single-cell Rna Seq data)
+Author@R:
+    person("Charles", "Bernard", email = "charles.bernard@curie.fr", role = c("aut", "cre"))
+Author:
+    Charles Bernard [aut, cre]
+Maintainer:
+    Charles Bernard <charles.bernard@curie.fr>
+Description:
+    The purpose of mage is to capture, and more essentially to classify,
+    any association between 2 gene expressions in a Single Cell Rna Seq
+    Dataset.
 Depends:
- R (>= 3.4.0)
-License: GPL (>= 2)
-Encoding: UTF-8
-LazyData: true
+    R (>= 3.4.0)
+License: GPL-3
+Encoding:
+    UTF-8
+LazyData:
+    true
 RoxygenNote: 6.0.1
-biocViews: RNASeq, GeneExpression, SingleCell
+biocViews:
+    RNASeq, GeneExpression, SingleCell
+URL:
+    https://github.com/charles-bernard/mage
+Imports:
+	methods,
+    minerva,
+    stats,
+    utils
