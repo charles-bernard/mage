@@ -26,7 +26,7 @@ compute_scores <- function(x,
 
   # Get unique pairs
   # ----------------------------------------------------------------------
-  pairs <- t(combn(nrow(x), 2));
+  pairs <- t(utils::combn(nrow(x), 2));
   n_pairs <- nrow(pairs);
   pairs_name <- paste(rownames(x)[pairs[, 1]],
                       rownames(x)[pairs[, 2]],
@@ -37,16 +37,16 @@ compute_scores <- function(x,
   # ----------------------------------------------------------------------
   cat(" * Compute the MINE scores for all pairs of variables ...\n");
   cat("     this may take quite some time ...\n");
-  MINE_sym_mats <- mine(t(x), master = 1:n_genes,
-                        n.cores = n.cores,
-                        alpha = 0.6, C = 15);
-  n_scores <- length(MINE_sym_mat);
-  scores_name <- names(MINE_sym_mat);
+  MINE_sym_mats <- minerva::mine(t(x), master = 1:n_genes,
+                                 n.cores = n.cores,
+                                 alpha = 0.6, C = 15);
+  n_scores <- length(MINE_sym_mats);
+  scores_name <- names(MINE_sym_mats);
 
   # Turn the symetric matrices into a global table
   # whose each row is a unique association
-  MINE_mats <- matrix(nrow = n_pairs, ncol = n_scores);
-  colnames(MINE_mats) <- scores_name;
+  MINE_mat <- matrix(nrow = n_pairs, ncol = n_scores);
+  colnames(MINE_mat) <- scores_name;
   for(i in 1:n_scores) {
     MINE_mat[, i] <- unlist(vapply(pairs_ix,
                             function(ix)
@@ -57,21 +57,21 @@ compute_scores <- function(x,
   # Compute Pearson and Spearman Correlations as well
   # ----------------------------------------------------------------------
   cat(" * Compute the Pearson Correlation for all pairs of variables ...\n");
-  PEARSON <- vapply(pairs_ix,
-                    function(ix) as.list(cor(x[pairs[ix, 1], ],
-                                             x[pairs[ix, 2], ],
-                                             method = "pearson")),
-                    FUN.VALUE = c(numeric));
+  PEARSON_cor <- vapply(pairs_ix,
+                        function(ix) as.list(stats::cor(x[pairs[ix, 1], ],
+                                                    x[pairs[ix, 2], ],
+                                                    method = "pearson")),
+                        FUN.VALUE = c(numeric));
   cat(" * Compute the Spearman Correlation for all pairs of variables ...\n");
-  SPEARMAN <- vapply(pairs_ix,
-                     function(ix) as.list(cor(x[pairs[ix, 1], ],
-                                              x[pairs[ix, 2], ],
-                                              method = "spearman")),
-                     FUN.VALUE = c(numeric));
+  SPEARMAN_cor <- vapply(pairs_ix,
+                         function(ix) as.list(stats::cor(x[pairs[ix, 1], ],
+                                                     x[pairs[ix, 2], ],
+                                                     method = "spearman")),
+                         FUN.VALUE = c(numeric));
 
   # Sort MINE_mat by decreasing order of MIC Score
   # ----------------------------------------------------------------------
-  MINE_table <- data.table(MINE_mat);
+  MINE_table <- data.frame(MINE_mat);
   sort_ix <- sort(unlist(MINE_table[,1]),
                   decreasing = T, index.return = T)$ix;
 
@@ -84,8 +84,8 @@ compute_scores <- function(x,
                             `MAS (non-monotonicity)` = MINE_table[sort_ix]$`MAS`,
                             `MEV (functionality)` = MINE_table[sort_ix]$`MEV`,
                             `MCN (complexity)` = MINE_table[sort_ix]$`MCN`,
-                            `PEARSON p (linear correlation)` = PEARSON_results[sort_ix],
-                            `SPEARMAN rho (rank correlation)` = SPEARMAN_results[sort_ix]);
+                            `PEARSON p (linear correlation)` = PEARSON_cor[sort_ix],
+                            `SPEARMAN rho (rank correlation)` = SPEARMAN_cor[sort_ix]);
 
   return(final_table);
 }
