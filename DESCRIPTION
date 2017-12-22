@@ -29,6 +29,8 @@ biocViews:
 URL:
     https://github.com/charles-bernard/mage
 Imports:
+    graphics,
+    grDevices,
 	methods,
     minerva,
     stats,
