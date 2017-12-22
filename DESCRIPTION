@@ -28,10 +28,13 @@ biocViews:
     RNASeq, GeneExpression, SingleCell
 URL:
     https://github.com/charles-bernard/mage
+LinkingTo:
+    Rcpp
 Imports:
     graphics,
     grDevices,
-	methods,
+    methods,
     minerva,
     stats,
-    utils
+    utils,
+    Rcpp
