@@ -30,8 +30,8 @@ else if \code{on = "pval"}, \code{filter_scores} will retain any association who
 \dontrun{
 scores_tab <- compute_scores(my_gene_exp_matrix, n.cores = 6)
 pvalues <- assign_pval(scores_tab$`MIC (strength)`, nb_cells = 96)
-signif_scores_tab <- filter_scores(scores_tab, on = "pval", 
+signif_scores_tab <- filter_scores(scores_tab, on = "pval",
                                    pval = pvalues, threshold = 0.05)
-}                                    
+}
 
 }
