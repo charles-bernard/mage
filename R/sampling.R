@@ -4,6 +4,13 @@
 # according to different methods ((down|low|up) sampling, (centroids|medoids) selection)
 
 # Copied from spade R package (Multidimensional kernel density estimation)
+#' @title compute_density
+#'
+#' @description Uses Multidimensional Kernel Density Estimation to estimate the density
+#' of each association in the space of the scores
+#'
+#' @param x matrix: the matrix of scores (without the gene names)
+#'
 #' @useDynLib mage compute_density_
 compute_density <- function(x, kernel_mult = 5.0, apprx_mult = 1.5, med_samples = 2000) {
   .Call("compute_density_", t(x), kernel_mult, apprx_mult, med_samples);
@@ -65,7 +72,8 @@ sample <- function(x,
                    partition = NULL,
                    methods = "downsampling",
                    target_ratio = .1,
-                   target_nb = NULL) {
+                   target_nb = NULL,
+                   return_density = FALSE) {
 
   x <- data.matrix(x[, 3:ncol(x)]);
   sampling_out <- list();

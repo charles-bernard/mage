@@ -8,7 +8,7 @@
 #' @description
 #' Computes the table of association and characterization scores
 #'
-#' @param x matrix: a gene expression matrix (rownames corresponding to cells and colnames to genes)
+#' @param x matrix: a gene expression matrix (rownames corresponding to genes and colnames to cells)
 #' @param n.cores integer: nb of cores to be used for parallel processing
 #'
 #' @return
@@ -21,6 +21,7 @@
 #'
 #' @importFrom utils combn
 #' @importFrom stats cor p.adjust
+#' @importFrom data.table data.table
 compute_scores <- function(x,
                            n.cores = 1) {
 
@@ -37,8 +38,8 @@ compute_scores <- function(x,
 
   # Compute MINE scores
   # ----------------------------------------------------------------------
-  print(" * Compute the MINE scores for all pairs of variables ...\n");
-  print("     this may take quite some time ...\n");
+  cat(" * Compute the MINE scores for all pairs of variables ...\n");
+  cat("     this may take quite some time ...\n");
   MINE_sym_mats <- minerva::mine(t(x), master = 1:n_genes,
                                  n.cores = n.cores,
                                  alpha = 0.6, C = 15);
@@ -58,13 +59,13 @@ compute_scores <- function(x,
 
   # Compute Pearson and Spearman Correlations as well
   # ----------------------------------------------------------------------
-  print(" * Compute the Pearson Correlation for all pairs of variables ...\n");
+  cat(" * Compute the Pearson Correlation for all pairs of variables ...\n");
   PEARSON_cor <- unlist(vapply(pairs_ix,
                                function(ix) as.list(cor(x[pairs[ix, 1], ],
                                                         x[pairs[ix, 2], ],
                                                         method = "pearson")),
                                FUN.VALUE = c(numeric)));
-  print(" * Compute the Spearman Correlation for all pairs of variables ...\n");
+  cat(" * Compute the Spearman Correlation for all pairs of variables ...\n");
   SPEARMAN_cor <- unlist(vapply(pairs_ix,
                                 function(ix) as.list(cor(x[pairs[ix, 1], ],
                                                          x[pairs[ix, 2], ],
@@ -79,7 +80,7 @@ compute_scores <- function(x,
 
   # Write final table, assign customed column names
   # ----------------------------------------------------------------------
-  final_table <- data.frame(`X gene` = rownames(x)[pairs[sort_ix, 1]],
+  final_table <- data.table(`X gene` = rownames(x)[pairs[sort_ix, 1]],
                             `Y gene` = rownames(x)[pairs[sort_ix, 2]],
                             `MIC (strength)` = MINE_table[sort_ix, ]$`MIC`,
                             `MIC-p^2 (nonlinearity)` = MINE_table[sort_ix, ]$`MICR2`,
@@ -135,9 +136,9 @@ assign_pval <- function(MIC_scores,
 
   # Print the absolute difference btw nb_cells and sample_size
   # ----------------------------------------------------------------------
-  print(sprintf("abs(sample_size - nb_cells) = %d",
+  cat(sprintf("abs(sample_size - nb_cells) = %d\n",
                 abs(as.integer(sample_size[closest_sample_size_ix]) - nb_cells)));
-  print("If this difference is too big, consider ignoring these p-values ...")
+  cat("If this difference is too big, consider ignoring these p-values ...\n")
 
   # Get the boundaries of the table
   # ----------------------------------------------------------------------
@@ -172,8 +173,10 @@ assign_pval <- function(MIC_scores,
 
   # Assign p-value = 0 to any MIC > max(MIC) present in pval_tab
   # ----------------------------------------------------------------------
-  for(i in 1:length(most_signif_MIC_ix)) {
-    p_values[uniq_MIC_scores_ix[[most_signif_MIC_ix[i]]]] <- 0;
+  if(length(most_signif_MIC_ix > 0)) {
+    for(i in 1:length(most_signif_MIC_ix)) {
+      p_values[uniq_MIC_scores_ix[[most_signif_MIC_ix[i]]]] <- 0;
+    }
   }
 
   return(p_values);
