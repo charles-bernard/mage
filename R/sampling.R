@@ -57,7 +57,10 @@ get_boundary <- function(density, target_nb) {
 #'
 #' argument \code{target_ratio} will be ignored if argument \code{target_nb} is provided
 #'
-#' @param target_nb number of gene pairs to be retained in \code{x} (if partition is NULL) or in each cluster of \code{x} (if partition is NOT NULL)
+#' @param target_nb number of gene pairs to be retained in \code{x} (if partition is NULL)
+#' or in each cluster of \code{x} (if partition is NOT NULL)
+#'
+#' @importFrom stats dist median quantile runif
 sample <- function(x,
                    partition = NULL,
                    methods = "downsampling",
@@ -180,10 +183,3 @@ sample <- function(x,
   }
 }
 
-
-file <- "/media/charles/Seagate Expansion Drive/Curie/Analyses/Analyses_CDD/MAGE/A471/794_remaining_mvg/794vg_Mage_out/3-Diversity_of_Associations/1-Clusters/1-clusters.csv";
-data <- fread(file, sep = ",", header = T);
-x <- data.frame(data[, 1:8]);
-clusters <- data[ ,12][[1]];
-MIC_scores <- data[,3][[1]];
-nb_cells <- 96;

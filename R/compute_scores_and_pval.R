@@ -19,6 +19,8 @@
 #'   \item{4:n}{Characterization scores, informing about the "shape" of the association}
 #' }
 #'
+#' @importFrom utils combn
+#' @importFrom stats cor p.adjust
 compute_scores <- function(x,
                            n.cores = 1) {
 
@@ -26,7 +28,7 @@ compute_scores <- function(x,
 
   # Get unique pairs
   # ----------------------------------------------------------------------
-  pairs <- t(utils::combn(nrow(x), 2));
+  pairs <- t(combn(nrow(x), 2));
   n_pairs <- nrow(pairs);
   pairs_name <- paste(rownames(x)[pairs[, 1]],
                       rownames(x)[pairs[, 2]],
@@ -58,15 +60,15 @@ compute_scores <- function(x,
   # ----------------------------------------------------------------------
   cat(" * Compute the Pearson Correlation for all pairs of variables ...\n");
   PEARSON_cor <- vapply(pairs_ix,
-                        function(ix) as.list(stats::cor(x[pairs[ix, 1], ],
-                                                    x[pairs[ix, 2], ],
-                                                    method = "pearson")),
+                        function(ix) as.list(cor(x[pairs[ix, 1], ],
+                                                 x[pairs[ix, 2], ],
+                                                 method = "pearson")),
                         FUN.VALUE = c(numeric));
   cat(" * Compute the Spearman Correlation for all pairs of variables ...\n");
   SPEARMAN_cor <- vapply(pairs_ix,
-                         function(ix) as.list(stats::cor(x[pairs[ix, 1], ],
-                                                     x[pairs[ix, 2], ],
-                                                     method = "spearman")),
+                         function(ix) as.list(cor(x[pairs[ix, 1], ],
+                                                  x[pairs[ix, 2], ],
+                                                  method = "spearman")),
                          FUN.VALUE = c(numeric));
 
   # Sort MINE_mat by decreasing order of MIC Score
@@ -115,7 +117,7 @@ compute_scores <- function(x,
 assign_pval <- function(MIC_scores,
                         nb_cells) {
   MIC_scores <- round(MIC_scores, 3);
-  
+
   # Get indexes of each unique value in the MIC score vector
   # ----------------------------------------------------------------------
   uniq_MIC_scores <- unique(MIC_scores);
@@ -123,27 +125,27 @@ assign_pval <- function(MIC_scores,
   for(i in 1:length(uniq_MIC_scores)) {
     uniq_MIC_scores_ix[[i]] <- which(MIC_scores == uniq_MIC_scores[i]);
   }
-  
+
   # Get appropriate pval_tab:
   # sample_size must be as close as possible to nb_cells
   # ----------------------------------------------------------------------
   pval_data <- load(system.file("R/sysdata.rda", package = "mage"));
   closest_sample_size_ix <- which.min(abs(as.integer(sample_size) - nb_cells));
   pval_tab <- pval_tables[[closest_sample_size_ix]];
-  
+
   # Print the absolute difference btw nb_cells and sample_size
   # ----------------------------------------------------------------------
-  print(sprintf("abs(sample_size - nb_cells) = %d", 
+  print(sprintf("abs(sample_size - nb_cells) = %d",
                 abs(as.integer(sample_size[closest_sample_size_ix]) - nb_cells)));
   print("If this difference is too big, consider ignoring these p-values ...")
-  
+
   # Get the boundaries of the table
   # ----------------------------------------------------------------------
   pval_tab_max_MIC <- pval_tab[1, 1];
   pval_tab_min_MIC <- pval_tab[nrow(pval_tab), 1];
   most_signif_MIC_ix <- which(uniq_MIC_scores > c(pval_tab_max_MIC));
   least_signif_MIC_ix <- which(uniq_MIC_scores < c(pval_tab_min_MIC));
-  
+
   # Get the p-value assigned to any MIC written in pval_tab
   # ----------------------------------------------------------------------
   pval_tab_MIC_scores <- round(pval_tab[,1], 3);
@@ -154,7 +156,7 @@ assign_pval <- function(MIC_scores,
       round(pval_tab[which(pval_tab_MIC_scores == pval_tab_uniq_MIC_scores[i])[1], 2], 3);
   }
   pval_tab_uniq_MIC_scores_pval <- unlist(pval_tab_uniq_MIC_scores_pval);
-  
+
   # Use these references to assign a p-value to each MIC score
   # present in the MIC_scores vector
   # ----------------------------------------------------------------------
@@ -167,13 +169,13 @@ assign_pval <- function(MIC_scores,
           - uniq_MIC_scores[i]));
     p_values[uniq_MIC_scores_ix[[i]]] <- pval_tab_uniq_MIC_scores_pval[cur_ix];
   }
-  
+
   # Assign p-value = 0 to any MIC > max(MIC) present in pval_tab
   # ----------------------------------------------------------------------
   for(i in 1:length(most_signif_MIC_ix)) {
     p_values[uniq_MIC_scores_ix[[most_signif_MIC_ix[i]]]] <- 0;
   }
-  
+
   return(p_values);
 }
 
@@ -189,7 +191,7 @@ assign_pval <- function(MIC_scores,
 #' Returns a numeric vector of adjusted p-values
 #'
 adjust_pval <- function(pval) {
-  adjusted_pval <- stats::p.adjust(pval, method = "BH");
+  adjusted_pval <- p.adjust(pval, method = "BH");
   return(adjusted_pval);
 }
 
