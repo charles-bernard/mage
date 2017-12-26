@@ -1,17 +1,21 @@
 # mage R package
 
 # This file contains a big function to sample a table of scores or clusters of it
-# according to different methods ((down|low|up) sampling, (centroids|medoids) selection)
+# according to different methods:
+#    ((down|low|up) sampling, (centroids|medoids) selection)
 
 # Copied from spade R package (Multidimensional kernel density estimation)
 #' @title compute_density
 #'
-#' @description Uses Multidimensional Kernel Density Estimation to estimate the density
-#' of each association in the space of the scores
+#' @description Uses Multidimensional Kernel Density Estimation to
+#' estimate the density of each association in the space of the scores
 #'
 #' @param x matrix: the matrix of scores (without the gene names)
 #'
 #' @useDynLib mage compute_density_
+#'
+#' @return
+#' a numeric vector of densities
 compute_density <- function(x, kernel_mult = 5.0, apprx_mult = 1.5, med_samples = 2000) {
   .Call("compute_density_", t(x), kernel_mult, apprx_mult, med_samples);
 }
@@ -41,9 +45,11 @@ get_boundary <- function(density, target_nb) {
 #' @param x data.frame, a table of scores
 #' @param partition vector containing the partition of table \code{x}.
 #'
-#' If \code{partition} is passed to this function, each cluster will be sampled instead of the whole table.
+#' If \code{partition} is passed to this function, each cluster will be
+#' sampled instead of the whole table.
 #'
-#' Each element of the partition vector must be a cluster ID and length(partition) must be equal to nrow(x).
+#' Each element of the partition vector must be a cluster ID and
+#' length(partition) must be equal to nrow(x).
 #'
 #'
 #' @param methods method or vector of methods to be used for the sampling.

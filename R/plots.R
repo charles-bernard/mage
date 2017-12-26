@@ -23,7 +23,7 @@ plot_scores_relationships <- function(x, pdf_filename = NULL) {
   n_scores <- ncol(scores_mat);
 
   if(!is.null(pdf_filename)) {
-    grDevices::pdf(pdf_filename, width = 10, height = 10);
+    pdf(pdf_filename, width = 10, height = 10);
   }
 
   par(mfrow = c(n_scores, n_scores),
@@ -48,5 +48,3 @@ plot_scores_relationships <- function(x, pdf_filename = NULL) {
     junk <- dev.off();
   }
 }
-
-

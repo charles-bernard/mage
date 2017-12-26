@@ -8,11 +8,17 @@
 #' @title filter_scores
 #'
 #' @description
-#' Filters a table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
+#' Filters a table of scores based on a threshold of significance
+#' defined either by a MIC score, or by a p-value
 #'
 #' @param x data.frame: the table of scores
-#' @param on variable used for the threshold (accepts only \code{"MIC"} or \code{"pval"})
-#' @param pval numeric vector of p-values corresponding to the MIC scores in \code{x} (only if \code{on = "pval"})
+#'
+#' @param on variable used for the threshold
+#' (accepts only \code{"MIC"} or \code{"pval"})
+#'
+#' @param pval numeric vector of p-values corresponding to
+#' the MIC scores in \code{x} (only if \code{on = "pval"})
+#'
 #' @param thresh value of the threshold
 #'
 #' @return
@@ -76,11 +82,4 @@ standardize_scores <- function(x) {
 
   return(data.frame(x[, 1:2], std_x));
 }
-
-
-# file <- "/media/charles/Seagate Expansion Drive/Curie/Analyses/Analyses_CDD/MAGE/A471/794_remaining_mvg/794vg_Mage_out/1-Association_Scores/0-scores.csv";
-# data <- fread(file, sep = ",", header = T);
-# MIC_scores <- data[,3][[1]];
-# nb_cells <- 96;
-
 

@@ -1,14 +1,18 @@
 # mage R package
 
-# This file contain functions to:
+# This file contains functions to:
 #   1. Compute the table of scores (both asso. and charac. scores)
+#   2. Determine the p-values of MIC Scores
+#   3. Adjust p-values using FDR methodology
 
 #' @title compute_scores
 #'
 #' @description
 #' Computes the table of association and characterization scores
 #'
-#' @param x matrix: a gene expression matrix (rownames corresponding to genes and colnames to cells)
+#' @param x matrix: a gene expression matrix
+#' (rownames corresponding to genes and colnames to cells)
+#'
 #' @param n.cores integer: nb of cores to be used for parallel processing
 #'
 #' @return
@@ -46,8 +50,8 @@ compute_scores <- function(x,
   n_scores <- length(MINE_sym_mats);
   scores_name <- names(MINE_sym_mats);
 
-  # Turn the symetric matrices into a global table
-  # whose each row is a unique association
+  # Aggregate the symetric matrices into a global table
+  # where each row is a unique association
   MINE_mat <- matrix(nrow = n_pairs, ncol = n_scores);
   colnames(MINE_mat) <- scores_name;
   for(i in 1:n_scores) {
@@ -136,9 +140,10 @@ assign_pval <- function(MIC_scores,
 
   # Print the absolute difference btw nb_cells and sample_size
   # ----------------------------------------------------------------------
-  cat(sprintf("abs(sample_size - nb_cells) = %d\n",
+  cat(" * Find pval table with the n closest to nb_cells");
+  cat(sprintf("   abs(sample_size - nb_cells) = %d\n",
                 abs(as.integer(sample_size[closest_sample_size_ix]) - nb_cells)));
-  cat("If this difference is too big, consider ignoring these p-values ...\n")
+  cat("   If this difference is too big, consider ignoring these p-values ...\n")
 
   # Get the boundaries of the table
   # ----------------------------------------------------------------------
