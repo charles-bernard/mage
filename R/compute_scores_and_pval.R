@@ -140,10 +140,10 @@ assign_pval <- function(MIC_scores,
 
   # Print the absolute difference btw nb_cells and sample_size
   # ----------------------------------------------------------------------
-  cat(" * Find pval table with the n closest to nb_cells");
+  cat(" * Find pval table with the n closest to nb_cells\n");
   cat(sprintf("   abs(sample_size - nb_cells) = %d\n",
                 abs(as.integer(sample_size[closest_sample_size_ix]) - nb_cells)));
-  cat("   If this difference is too big, consider ignoring these p-values ...\n")
+  cat("   If this difference is too big, consider ignoring these p-values ...\n");
 
   # Get the boundaries of the table
   # ----------------------------------------------------------------------
