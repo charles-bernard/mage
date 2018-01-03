@@ -32,10 +32,14 @@ LinkingTo:
     Rcpp
 Imports:
     data.table,
+    fpc,
     graphics,
     grDevices,
+    igraph,
     methods,
     minerva,
+    NbClust,
     stats,
     utils,
-    Rcpp
+    Rcpp,
+    Rphenograph
