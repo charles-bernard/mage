@@ -12,9 +12,11 @@ sample(x, partition = NULL, methods = "downsampling", target_ratio = 0.1,
 
 \item{partition}{vector containing the partition of table \code{x}.
 
-Each element of the partition vector must be a cluster ID and length(partition) must be equal to nrow(x).
+If \code{partition} is passed to this function, each cluster will be
+sampled instead of the whole table.
 
-If \code{partition} is passed to this function, each cluster will be sampled instead of the whole table.}
+Each element of the partition vector must be a cluster ID and
+length(partition) must be equal to nrow(x).}
 
 \item{methods}{method or vector of methods to be used for the sampling.
 
@@ -34,7 +36,8 @@ See Details to have the description of the methods}
 
 argument \code{target_ratio} will be ignored if argument \code{target_nb} is provided}
 
-\item{target_nb}{number of gene pairs to be retained in \code{x} (if partition is NULL) or in each cluster of \code{x} (if partition is NOT NULL)}
+\item{target_nb}{number of gene pairs to be retained in \code{x} (if partition is NULL)
+or in each cluster of \code{x} (if partition is NOT NULL)}
 }
 \description{
 Sample the table of scores or clusters of it

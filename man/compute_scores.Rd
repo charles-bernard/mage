@@ -7,7 +7,8 @@
 compute_scores(x, n.cores = 1)
 }
 \arguments{
-\item{x}{matrix: a gene expression matrix (rownames corresponding to cells and colnames to genes)}
+\item{x}{matrix: a gene expression matrix
+(rownames corresponding to genes and colnames to cells)}
 
 \item{n.cores}{integer: nb of cores to be used for parallel processing}
 }

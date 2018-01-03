@@ -9,9 +9,11 @@ filter_scores(x, on = "MIC", pval = NULL, thresh = 0.4)
 \arguments{
 \item{x}{data.frame: the table of scores}
 
-\item{on}{variable used for the threshold (accepts only \code{"MIC"} or \code{"pval"})}
+\item{on}{variable used for the threshold
+(accepts only \code{"MIC"} or \code{"pval"})}
 
-\item{pval}{numeric vector of p-values corresponding to the MIC scores in \code{x} (only if \code{on = "pval"})}
+\item{pval}{numeric vector of p-values corresponding to
+the MIC scores in \code{x} (only if \code{on = "pval"})}
 
 \item{thresh}{value of the threshold}
 }
@@ -19,7 +21,8 @@ filter_scores(x, on = "MIC", pval = NULL, thresh = 0.4)
 Returns a filtered table of scores
 }
 \description{
-Filters a table of scores based on a threshold of significance defined either by a MIC score, or by a p-value
+Filters a table of scores based on a threshold of significance
+defined either by a MIC score, or by a p-value
 }
 \details{
 if \code{on = "MIC"}, \code{filter_scores} will retain any association whose MIC >= \code{threshold}
