@@ -176,7 +176,7 @@ sample <- function(x,
         sampling_table[mindist_relative_to_ref[1:computed_target_nb], curr_col] = TRUE;
       }
     }
-    sampling_out$`Whole Table` <- sampling_table;
+    sampling_out$`population` <- sampling_table;
     return(sampling_out);
   }
 
@@ -184,7 +184,10 @@ sample <- function(x,
   #   Recursivity with x = current_custer_table and partition = NULL
   # ----------------------------------------------------------------------
   if(!is.null(partition)) {
-    clusters <- unique(partition);
+    if(length(partition) != nrow(x)) {
+      stop("length of the partition must be equal to nrow(x)");
+    }
+    clusters <- sort(unique(partition));
 
     for(i in 1:length(clusters)) {
       cluster <- clusters[i];

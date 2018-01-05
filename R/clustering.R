@@ -19,7 +19,7 @@ phenograph_clustering <- function(x, ngb = 50) {
   Rphenograph_out <- Rphenograph(x[, 3:ncol(x)], k = ngb);
   partition <- membership(Rphenograph_out[[2]]);
   names(partition) <- NULL
-  return(partition);
+  return(as.numeric(partition));
 }
 
 #' @title get_relevant_k
@@ -34,8 +34,8 @@ phenograph_clustering <- function(x, ngb = 50) {
 #' @return
 #' a list of 2 elements
 #' \describe{
-#'   \item{NbClust Output}{A vector of integer containing the best k returned by each method}
-#'   \item{Majority Rule k}{k most often returned}
+#'   \item{NbClust_output}{A vector of integer storing the best k returned by each method}
+#'   \item{majority_rule_k}{k most often returned}
 #' }
 #'
 #' @importFrom NbClust NbClust
@@ -63,13 +63,13 @@ get_relevant_k <- function(x, ix = NULL, kmax = 12) {
                      nbclust_out$Best.nc[1, ] <= kmax);
   best_k <- nbclust_out$Best.nc[1, good_ix];
   best_k_names <- names(best_k);
-  relevant_k$`NbClust Output` <- as.integer(best_k);
-  names(relevant_k$`NbClust Output` ) <- best_k_names;
+  relevant_k$`NbClust_output` <- as.integer(best_k);
+  names(relevant_k$`NbClust_output` ) <- best_k_names;
 
   # Majority Rule k
   # ----------------------------------------------------------------------
-  t <- table(relevant_k$`NbClust Output`);
-  relevant_k$`Majority Rule k` <-  as.integer(names(t)[max(which(t == t[which.max(t)]))]);
+  t <- table(relevant_k$`NbClust_output`);
+  relevant_k$`majority_rule_k` <-  as.integer(names(t)[max(which(t == t[which.max(t)]))]);
   return(relevant_k);
 }
 
