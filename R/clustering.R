@@ -6,11 +6,10 @@
 #' of the table of scores
 #'
 #' @param x data.frame; the table of scores
-#'
 #' @param ngb number of nearest neighbours
 #'
 #' @return
-#' a class vector corresponding to the partition of the table of scores
+#' a vector corresponding to the partition of the table of scores
 #'
 #' @importFrom Rphenograph Rphenograph
 #' @importFrom igraph membership
@@ -24,13 +23,13 @@ phenograph_clustering <- function(x, ngb = 50) {
 
 #' @title get_relevant_k
 #'
-#' @description call NbClust package to return a list of relevant k
+#' @description calls NbClust package to return a list of relevant k
 #' according to different methodologies
 #'
 #' @param x data.frame, the table of scores
 #' @param kmax maximun number of clusters allowed
-#'
 #' @param ix boolean vector of indexes to which x must be reduced (sampling output)
+#'
 #' @return
 #' a list of 2 elements
 #' \describe{
@@ -79,7 +78,6 @@ get_relevant_k <- function(x, ix = NULL, kmax = 12) {
 #' around medoids (a more robust version of K-means)
 #'
 #' @param x data.frame; the table of scores
-#'
 #' @param k desired number of clusters
 #'
 #' @return
