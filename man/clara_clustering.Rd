@@ -12,9 +12,9 @@ clara_clustering(x, k)
 \item{k}{desired number of clusters}
 }
 \value{
-a class vector corresponding to the partition of the table of scores
+a vector corresponding to the partition of the table of scores
 }
 \description{
-use clara algorithm to partition the table of scores into k clusters
+uses clara algorithm to partition the table of scores into k clusters
 around medoids (a more robust version of K-means)
 }

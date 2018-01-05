@@ -21,6 +21,6 @@ a list of 2 elements
 }
 }
 \description{
-call NbClust package to return a list of relevant k
+calls NbClust package to return a list of relevant k
 according to different methodologies
 }

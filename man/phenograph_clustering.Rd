@@ -12,7 +12,7 @@ phenograph_clustering(x, ngb = 50)
 \item{ngb}{number of nearest neighbours}
 }
 \value{
-a class vector corresponding to the partition of the table of scores
+a vector corresponding to the partition of the table of scores
 }
 \description{
 uses the phenograph algorithm to perform an automated clustering
