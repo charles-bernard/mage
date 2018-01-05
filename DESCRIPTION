@@ -31,15 +31,20 @@ URL:
 LinkingTo:
     Rcpp
 Imports:
+    corrplot,
     data.table,
+    factoextra,
+    FactoMineR,
     fpc,
     graphics,
     grDevices,
+    ComplexHeatmap,
     igraph,
     methods,
     minerva,
     NbClust,
     stats,
     utils,
+    RColorBrewer,
     Rcpp,
     Rphenograph
