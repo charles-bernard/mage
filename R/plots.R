@@ -330,7 +330,7 @@ show_reduced_space <- function(x, x_ixs = NULL,
   print(lapply(reduced_space, names));
 
   # Print the plots in pdf files
-
+  # ----------------------------------------------------------------------
   if(!is.null(output_dir)) {
     cat("Storing the plots in pdf files inside the output directory ...");
     # PCA info
@@ -380,4 +380,99 @@ show_reduced_space <- function(x, x_ixs = NULL,
   }
 
   return(reduced_space);
+}
+
+# internal function; create subdir
+# ----------------------------------------------------------------------
+create_subdir <- function(main_dir, subdirname) {
+  subdir = file.path(main_dir, subdirname);
+  if(file.exists(subdir))
+    unlink(subdir, recursive = TRUE);
+  dir.create(subdir);
+  return(subdir);
+}
+
+# internal function: scatterplot
+# ----------------------------------------------------------------------
+scatterplot <- function(output_dir, ix, x, y) {
+  for(i in 1:length(ix)) {
+    X_gene <- x[ix[i], 1];
+    Y_gene <- x[ix[i], 2];
+    X_data <- c(y[as.character(X_gene), ]);
+    Y_data <- c(y[as.character(Y_gene), ]);
+    plot_file <- file.path(output_dir, paste(i, "-", X_gene, "_vs_", Y_gene, ".svg", sep = ""));
+    svg(plot_file, width = 20, height = 7);
+    par(mfcol = c(1,3));
+    plot(as.numeric(X_data),
+         as.numeric(Y_data),
+         pch = 19,
+         xlab = X_gene,
+         ylab = Y_gene,
+         main = paste(X_gene, "Expression vs", Y_gene, "Expression"));
+    plot(as.numeric(Y_data),
+         as.numeric(X_data),
+         pch = 19,
+         xlab = Y_gene,
+         ylab = X_gene,
+         main = paste(Y_gene, "Expression vs", X_gene, "Expression"));
+    plot(log2(as.numeric(X_data)+1),
+         log2(as.numeric(Y_data)+1),
+         pch = 19,
+         xlab = X_gene,
+         ylab = Y_gene,
+         main = paste("log2(", X_gene, "Expression ) vs log2(", Y_gene, "Expression )"));
+    junk <- dev.off();
+  }
+}
+
+#' @title show_associations
+#' @description
+#' Produces the scatterplot of each sampled association between 2 genes inside
+#' each cluster of a partition
+#'
+#' @param x data.frame; the table of scores
+#' @param y matrix; the gene expression matrix
+#' (rownames corresponding to genes and colnames to cells)
+#' @param partition vector; partition of \code{x} into k clusters
+#' @param partition_ixs list of n-by-m matrices of boolean indexes
+#' resulting from \code{sample} function
+#' where \code{n} is the number of individuals in a given cluster of the \code{partition}
+#' and \code{m} is is the number of methods used for the sampling
+#' @param output_dir path to a directory where to store all the plots
+#'
+#' @importFrom grDevices svg dev.off
+#' @importFrom graphics par plot
+show_associations <- function(x, y,
+                              partition,
+                              partition_ixs,
+                              output_dir) {
+  if(is.null(partition)) {
+    stop("A partition must be provided");
+  }
+  if(is.null(partition_ixs)) {
+    stop("Indexes of sampled individuals in each cluster of the partition must be provided");
+  }
+  if(is.null(y)) {
+    stop("A gene expression matrix must be provided");
+  }
+  if(is.null(output_dir)) {
+    stop("An output_dir must be provided");
+  }
+
+  n <- length(partition_ixs);
+  # for each cluster
+  for(i in 1:n) {
+    clust <- names(partition_ixs)[i];
+    clust_dirname <- paste("cluster", clust, sep = "_");
+    clust_dir <- create_subdir(output_dir, clust_dirname);
+    clust_ix <- which(partition == clust);
+    cat(sprintf("Plotting sampled associations within cluster %s\n", clust));
+    # for each sampling method
+    for(j in 1:ncol(partition_ixs[[i]])) {
+      method_dirname <- colnames(partition_ixs[[i]])[j];
+      method_dir <- create_subdir(clust_dir, method_dirname);
+      sampled_ix <- clust_ix[partition_ixs[[i]][, j]];
+      scatterplot(method_dir, sampled_ix, x, y);
+    }
+  }
 }
