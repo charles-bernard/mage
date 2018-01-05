@@ -74,14 +74,14 @@ get_relevant_k <- function(x, ix = NULL, kmax = 12) {
 
 #' @title clara_clustring
 #'
-#' @description use clara algorithm to partition the table of scores into k clusters
+#' @description uses clara algorithm to partition the table of scores into k clusters
 #' around medoids (a more robust version of K-means)
 #'
 #' @param x data.frame; the table of scores
 #' @param k desired number of clusters
 #'
 #' @return
-#' a class vector corresponding to the partition of the table of scores
+#' a vector corresponding to the partition of the table of scores
 #'
 #' @importFrom fpc claraCBI
 clara_clustering <- function(x, k) {
