@@ -9,7 +9,7 @@ plot_scores_relationships(x, pdf_filename = NULL)
 \arguments{
 \item{x}{data.frame: the table of scores}
 
-\item{pdf_filename}{path to the pdf file (optional)}
+\item{pdf_filename}{path to a pdf file which must store the plot (optional)}
 }
 \description{
 Produce the scatterplots of each pair of scores and display them

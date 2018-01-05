@@ -16,8 +16,8 @@ get_relevant_k(x, ix = NULL, kmax = 12)
 \value{
 a list of 2 elements
 \describe{
-  \item{NbClust Output}{A vector of integer containing the best k returned by each method}
-  \item{Majority Rule k}{k most often returned}
+  \item{NbClust_output}{A vector of integer storing the best k returned by each method}
+  \item{majority_rule_k}{k most often returned}
 }
 }
 \description{
