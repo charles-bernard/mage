@@ -172,10 +172,10 @@ ix_to_factors <- function(ix, partition) {
     length_factors <- length_factors + nrow(ix[[i]]);
   }
   if(is.null(partition)) {
-    partition <- rep(names(ix)[1], length(factors));
+    partition <- rep(names(ix)[1], length_factors);
   }
 
-  factors <- rep("filtered", length_partition);
+  factors <- rep("filtered", length_factors);
   for(i in 1:n) {
     # Get indexes of the current cluster
     curr_ix <- which(partition == names(ix)[i]);
