@@ -80,6 +80,9 @@ standardize_scores <- function(x) {
     std_x <- std_x[, -(which(possible_NA_col == TRUE))];
   }
 
-  return(data.frame(x[, 1:2], std_x));
+  std_tab <- data.table(x[, 1:2], std_x);
+  colnames(std_tab) <- colnames(x);
+
+  return(std_tab);
 }
 
