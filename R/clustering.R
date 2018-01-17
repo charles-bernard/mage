@@ -5,7 +5,7 @@
 #' @description uses the phenograph algorithm to perform an automated clustering
 #' of the table of scores
 #'
-#' @param x data.frame; the table of scores
+#' @param x data.table; the table of scores
 #' @param ngb number of nearest neighbours
 #'
 #' @return
@@ -19,6 +19,34 @@ phenograph_clustering <- function(x, ngb = 50) {
   partition <- membership(Rphenograph_out[[2]]);
   names(partition) <- NULL
   return(as.numeric(partition));
+}
+
+#' @title get_optimal_k
+#'
+#' @description a wrapper to \code{fpc::prediction.strength} function. This function is based on
+#' consensus clustering using clara algorithm for different k (2 to 10 precisely).
+#'
+#' The prediction strength is defined according to Tibshirani and Walther (2005) who recommand to
+#' choose as optimal number of clusters the largest number of clusters that leads to
+#' a prediction strength above a \code{cutoff} of 0.8 or 0.9.
+#'
+#' @param x data.table; the table of scores
+#' @param ix boolean vector of indexes to which x must be reduced (sampling output)
+#' @param cutoff cutoff for the prediction strength (recommanded to range from 0.8 up to 0.9)
+#' @param nrep nb of times the clustering is performed for each value of k (bootstrapping)
+#'
+#' @return the optimal number of clusters
+#' @importFrom fpc prediction.strength
+get_optimal_k <- function(x, ix = NULL, cutoff = 0.8, nrep = 20) {
+  x <- x[, 3:ncol(x)];
+  if(!is.null(ix)) {
+    x <- x[ix, ];
+  }
+
+  k <- k <- prediction.strength(
+    x, Gmin = 2, Gmax = 10, M = 20, cutoff = cutoff,
+    clustermethod = claraCBI, classification = "centroid")$optimalk;
+  return(k);
 }
 
 #' @title get_relevant_k
@@ -72,7 +100,7 @@ get_relevant_k <- function(x, ix = NULL, kmax = 12) {
   return(relevant_k);
 }
 
-#' @title clara_clustring
+#' @title clara_clustering
 #'
 #' @description uses clara algorithm to partition the table of scores into k clusters
 #' around medoids (a more robust version of K-means)
