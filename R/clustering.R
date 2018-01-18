@@ -5,7 +5,7 @@
 #' @description uses the phenograph algorithm to perform an automated clustering
 #' of the table of scores
 #'
-#' @param x data.table; the table of scores
+#' @param scores_tab data.table; the table of scores
 #' @param ngb number of nearest neighbours
 #'
 #' @return
@@ -13,8 +13,8 @@
 #'
 #' @importFrom Rphenograph Rphenograph
 #' @importFrom igraph membership
-phenograph_clustering <- function(x, ngb = 50) {
-  x <- x[, 3:ncol(x)];
+phenograph_clustering <- function(scores_tab, ngb = 50) {
+  x <- scores_tab[, 3:ncol(scores_tab)];
   Rphenograph_out <- Rphenograph(x[, 3:ncol(x)], k = ngb);
   partition <- membership(Rphenograph_out[[2]]);
   names(partition) <- NULL
@@ -30,15 +30,15 @@ phenograph_clustering <- function(x, ngb = 50) {
 #' choose as optimal number of clusters the largest number of clusters that leads to
 #' a prediction strength above a \code{cutoff} of 0.8 or 0.9.
 #'
-#' @param x data.table; the table of scores
+#' @param scores_tab data.table; the table of scores
 #' @param ix boolean vector of indexes to which x must be reduced (sampling output)
 #' @param cutoff cutoff for the prediction strength (recommanded to range from 0.8 up to 0.9)
 #' @param nrep nb of times the clustering is performed for each value of k (bootstrapping)
 #'
 #' @return the optimal number of clusters
 #' @importFrom fpc prediction.strength
-get_optimal_k <- function(x, ix = NULL, cutoff = 0.8, nrep = 20) {
-  x <- x[, 3:ncol(x)];
+get_optimal_k <- function(scores_tab, ix = NULL, cutoff = 0.8, nrep = 20) {
+  x <- scores_tab[, 3:ncol(scores_tab)];
   if(!is.null(ix)) {
     x <- x[ix, ];
   }
@@ -54,7 +54,7 @@ get_optimal_k <- function(x, ix = NULL, cutoff = 0.8, nrep = 20) {
 #' @description calls NbClust package to return a list of relevant k
 #' according to different methodologies
 #'
-#' @param x data.frame, the table of scores
+#' @param scores_tab data.table, the table of scores
 #' @param kmax maximun number of clusters allowed
 #' @param ix boolean vector of indexes to which x must be reduced (sampling output)
 #'
@@ -66,8 +66,8 @@ get_optimal_k <- function(x, ix = NULL, cutoff = 0.8, nrep = 20) {
 #' }
 #'
 #' @importFrom NbClust NbClust
-get_relevant_k <- function(x, ix = NULL, kmax = 12) {
-  x <- x[, 3:ncol(x)];
+get_relevant_k <- function(scores_tab, ix = NULL, kmax = 12) {
+  x <- scores_tab[, 3:ncol(scores_tab)];
   if(!is.null(ix)) {
     x <- x[ix, ];
   }
@@ -105,17 +105,17 @@ get_relevant_k <- function(x, ix = NULL, kmax = 12) {
 #' @description uses clara algorithm to partition the table of scores into k clusters
 #' around medoids (a more robust version of K-means)
 #'
-#' @param x data.frame; the table of scores
+#' @param scores_tab data.table; the table of scores
 #' @param k desired number of clusters
 #'
 #' @return
 #' a vector corresponding to the partition of the table of scores
 #'
 #' @importFrom fpc claraCBI
-clara_clustering <- function(x, k) {
+clara_clustering <- function(scores_tab, k) {
   # Find the best partition for k clusters using clara algorithm
   # ----------------------------------------------------------------------
-  x <- x[, 3:ncol(x)];
+  x <- scores_tab[, 3:ncol(scores_tab)];
   res.clara <- claraCBI(x, k, usepam = TRUE);
   return(res.clara$partition);
 }
