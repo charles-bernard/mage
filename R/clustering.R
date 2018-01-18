@@ -31,7 +31,7 @@ phenograph_clustering <- function(scores_tab, ngb = 50) {
 #' a prediction strength above a \code{cutoff} of 0.8 or 0.9.
 #'
 #' @param scores_tab data.table; the table of scores
-#' @param ix boolean vector of indexes to which x must be reduced (sampling output)
+#' @param ix boolean vector of indexes to which \code{scores_tab} must be reduced (sampling output)
 #' @param cutoff cutoff for the prediction strength (recommanded to range from 0.8 up to 0.9)
 #' @param nrep nb of times the clustering is performed for each value of k (bootstrapping)
 #'
@@ -56,7 +56,7 @@ get_optimal_k <- function(scores_tab, ix = NULL, cutoff = 0.8, nrep = 20) {
 #'
 #' @param scores_tab data.table, the table of scores
 #' @param kmax maximun number of clusters allowed
-#' @param ix boolean vector of indexes to which x must be reduced (sampling output)
+#' @param ix boolean vector of indexes to which \code{scores_tab} must be reduced (sampling output)
 #'
 #' @return
 #' a list of 2 elements
