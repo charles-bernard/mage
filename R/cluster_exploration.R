@@ -125,11 +125,18 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
     parent_dir <- create_subdir(parent_dir, node_struct);
 
     pdf(file.path(parent_dir, paste("tree_", node_struct, ".pdf", sep = "")));
-    pp <- PlotPG(X = scores_mat,
-                TargetPG = tree,
-                GroupsLab = tree_info$pt_br_brpt %in% node_struct, NodeLabels = 1:nrow(tree$NodePositions),
-                LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
-    plot(pp[[1]]);
+    pp1 <- PlotPG(X = scores_mat,
+                  TargetPG = tree,
+                  GroupsLab = tree_info$pt_br_brpt %in% node_struct,
+                  NodeLabels = 1:nrow(tree$NodePositions),
+                  LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
+    pp2 <- PlotPG(X = scores_mat,
+                  TargetPG = tree,
+                  PGCol = V(tree_info$tree_graph) %in%
+                    tree_info$tree_br_brpt[[which(names(tree_info$tree_br_brpt) == node_struct)]],
+                  NodeLabels = 1:nrow(tree$NodePositions),
+                  LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
+    plot(pp1[[1]]); plot(pp2[[1]]);
     junk <- dev.off();
   }
 
