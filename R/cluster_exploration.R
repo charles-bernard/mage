@@ -69,7 +69,7 @@ get_tree_info <- function(scores_mat, partition, trees) {
       ConstructGraph(PrintGraph = curr_tree);
     # Get branches and branching points of the tree
     tree_br_brpt <-
-      GetSubGraph(Net = tree_graph, Structure = 'branches&bpoints', KeepEnds = FALSE);
+      GetSubGraph(Net = tree_graph, Structure = 'branches&bpoints');
     # Associate nodes to branches or branching points
     node_br_brpt <- rep("", vcount(tree_graph));
     for(j in 1:length(tree_br_brpt)) {
@@ -109,7 +109,7 @@ create_subdir <- function(main_dir, subdirname) {
 # It results from this function an arboresence of directories
 # identical to the one of the ElPiGraph Tree
 # ------------------------------------------------------------------
-create_and_fill_arborescence <- function(scores_tab, gene_exp_mat,
+create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
                                          node = node,
                                          parent_node = -1, parent_struct = -1, parent_dir,
                                          tree_info, tree, sampling_ix) {
@@ -125,8 +125,7 @@ create_and_fill_arborescence <- function(scores_tab, gene_exp_mat,
     parent_dir <- create_subdir(parent_dir, node_struct);
 
     pdf(file.path(parent_dir, paste("tree_", node_struct, ".pdf", sep = "")));
-    pp <- PlotPG(X = data.matrix(scores_tab[, c("MIC (strength)", "MIC-R2 (nonlinearity)", "MAS (non-monotonicity)",
-                                                "MCN (complexity)", "PEARSON coeff (linear correlation)")]),
+    pp <- PlotPG(X = scores_mat,
                 TargetPG = tree,
                 GroupsLab = tree_info$pt_br_brpt %in% node_struct, NodeLabels = 1:nrow(tree$NodePositions),
                 LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
@@ -152,17 +151,16 @@ create_and_fill_arborescence <- function(scores_tab, gene_exp_mat,
 
   # Recursivity on adjacent nodes
   # -----------------------------------------------------------------
+  # Get rid of already visited parent in the adj_nodes
+  if(parent_node != -1) {
+    adj_nodes <- adj_nodes[-which(adj_nodes == parent_node)];
+  }
   # Do nothing more if current node is a leaf
-  if(length(adj_nodes) != 1) {
-    # Get rid of already visited parent in the adj_nodes
-    if(parent_node != -1) {
-      adj_nodes <- adj_nodes[-which(adj_nodes == parent_node)];
-    }
-
-    for(i in 1:length(adj_nodes)) {
+  if(length(adj_nodes) > 0) {
+    for(n in 1:length(adj_nodes)) {
       create_and_fill_arborescence(
-        scores_tab, gene_exp_mat,
-        node = adj_nodes[i],
+        scores_tab, scores_mat, gene_exp_mat,
+        node = adj_nodes[n],
         parent_node = node, parent_struct = node_struct, parent_dir = parent_dir,
         tree_info, tree, sampling_ix);
     }
@@ -178,7 +176,7 @@ create_and_fill_arborescence <- function(scores_tab, gene_exp_mat,
 #' of associations lying within the clusters.
 #'
 #' To do so, the function measures the dispersion of the associations of each
-#' cluster in the space of the scores and try to depict this heterogeneity
+#' cluster in the space of the scores and depicts this heterogeneity
 #' as a tree structure (using ElPiGraph.R package).
 #' For instance, nodes along a same branch will be expected to exhibit
 #' similar types of associations.
@@ -188,7 +186,7 @@ create_and_fill_arborescence <- function(scores_tab, gene_exp_mat,
 #' as the branch which is the closest to the centroid of the table of scores)
 #' and expanding from adjacent branches to adjacent branches.
 #'
-#' In each directory corresponding to a branch (or a branching point)
+#' Inside each directory corresponding to a branch (or a branching point),
 #' the function will produce the scatterplots of a few sampled assocations in order
 #' for the user to get a glimpse of what type of associations each branch is related to.
 #'
@@ -250,8 +248,11 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
     junk <- dev.off();
 
     create_and_fill_arborescence (
-      scores_tab[partition == clusters[i], ], gene_exp_mat,
+      scores_tab[partition == clusters[i], ],
+      scores_mat[partition == clusters[i], ],
+      gene_exp_mat,
       node = curr_starting_node,
+      parent_node = -1, parent_struct = -1,
       parent_dir = cluster_dir,
       tree_info = trees_info[[i]],
       tree = trees[[i]],
@@ -259,35 +260,4 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
   }
 
 }
-
-explore_clusters(scores_tab, partition, gene_exp_mat,
-                             sampling_method = "downsampling", target_ratio = .8,
-                             output_directory = "/home/charles/test")
-
-#
-# library(mage);
-# library(data.table);
-# library(ElPiGraph.R);
-# library(igraph)
-#
-# # Load the data
-# # ----------------------------------------------------------------------
-# dataset_file <- "/media/charles/Seagate Expansion Drive/Curie/Datasets/scRnaSeq/Datasets/CAF_S1/Biopsy/A471/most_variant_genes/1000mvg/794_variant_genes_data.csv";
-# gene_exp_mat <- data.matrix(data.frame(fread(dataset_file, sep = ",", header = TRUE), row.names = 1));
-#
-# # a table of scores
-# # ----------------------------------------------------------------------
-# raw_tab_file <- "/media/charles/Seagate Expansion Drive/Curie/Analyses/Analyses_CDD/MAGE/A471/794_remaining_mvg/794vg_Mage_out/1-Association_Scores/0-scores.csv";
-# raw_tab <- fread(raw_tab_file, sep = ",", header = TRUE);
-# pval <- assign_pval(raw_tab$`MIC (strength)`, ncol(gene_exp_mat));
-# adjusted_pval <- adjust_pval(pval);
-# filtered_tab <- filter_scores(raw_tab, on = "pval", pval = adjusted_pval, thresh = 0.05);
-# std_tab <- standardize_scores(filtered_tab);
-#
-# # keep only the scores of interest -> turn it to matrix.
-# # ----------------------------------------------------------------------
-# scores_mat <- data.matrix(filtered_tab[, c("MIC (strength)", "MIC-R2 (nonlinearity)", "MAS (non-monotonicity)",
-#                                            "MCN (complexity)", "PEARSON coeff (linear correlation)")]);
-#
-# partition <- clara_clustering(filtered_tab, k = 4);
 
