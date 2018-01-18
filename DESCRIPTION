@@ -33,6 +33,7 @@ LinkingTo:
 Imports:
     corrplot,
     data.table,
+    ElPiGraph.R,
     factoextra,
     FactoMineR,
     fpc,
@@ -43,8 +44,9 @@ Imports:
     methods,
     minerva,
     NbClust,
-    stats,
-    utils,
     RColorBrewer,
     Rcpp,
-    Rphenograph
+    Rphenograph,
+    stats,
+    utils
+
