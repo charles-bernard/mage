@@ -7,7 +7,7 @@
 phenograph_clustering(x, ngb = 50)
 }
 \arguments{
-\item{x}{data.frame; the table of scores}
+\item{x}{data.table; the table of scores}
 
 \item{ngb}{number of nearest neighbours}
 }

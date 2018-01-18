@@ -26,6 +26,9 @@ and \code{m} is is the number of methods used for the sampling}
 
 \item{output_dir}{(optional) path to a directory where to store all the plots}
 }
+\value{
+Returns a list of plots
+}
 \description{
 Reduce the space of the scores to its first principal components
 in order to display on it the associated gene pairs.

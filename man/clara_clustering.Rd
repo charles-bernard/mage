@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{clara_clustering}
 \alias{clara_clustering}
-\title{clara_clustring}
+\title{clara_clustering}
 \usage{
 clara_clustering(x, k)
 }
