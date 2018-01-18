@@ -120,3 +120,5 @@ clara_clustering <- function(x, k) {
   return(res.clara$partition);
 }
 
+
+

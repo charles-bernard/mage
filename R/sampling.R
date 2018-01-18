@@ -83,7 +83,7 @@ sample <- function(x,
                    target_ratio = .1,
                    target_nb = NULL) {
 
-  x <- data.matrix(x[, 3:ncol(x)]);
+  x_mat <- data.matrix(x[, 3:ncol(x)]);
   sampling_out <- list();
 
   if(is.null(methods)) {
@@ -105,12 +105,12 @@ sample <- function(x,
     if(is.null(target_ratio)) {
       stop("A target ratio or nb must be provided");
     } else {
-      computed_target_nb <- round(nrow(x) * target_ratio);
+      computed_target_nb <- round(nrow(x_mat) * target_ratio);
     }
   } else {
     computed_target_nb <- target_nb;
-    if(target_nb > nrow(x)) {
-      computed_target_nb <- nrow(x);
+    if(target_nb > nrow(x_mat)) {
+      computed_target_nb <- nrow(x_mat);
     }
   }
 
@@ -128,7 +128,7 @@ sample <- function(x,
     # --------------------------------------------------------------------
     for(curr_method in methods) {
       if(curr_method %in% c("downsampling", "lowsampling", "upsampling")) {
-          density <- compute_density(x);
+          density <- compute_density(x_mat);
           random_proba <- runif(length(density));
           break;
       }
@@ -165,13 +165,13 @@ sample <- function(x,
       # ------------------------------------------------------------------
       if(curr_method %in% c("centroids", "medoids")) {
         if(curr_method == "centroids") {
-          reference_coordinates <- colMeans(x);
+          reference_coordinates <- colMeans(x_mat);
         } else {
-          reference_coordinates <- apply(x, 2, median);
+          reference_coordinates <- apply(x_mat, 2, median);
         }
 
         # Get nearest neighbor from (centr|med)oïd
-        alldist <- as.matrix(dist(rbind(reference_coordinates, x)));
+        alldist <- as.matrix(dist(rbind(reference_coordinates, x_mat)));
         mindist_relative_to_ref <- sort(alldist[1,-1], index.return = T)$ix;
         sampling_table[mindist_relative_to_ref[1:computed_target_nb], curr_col] = TRUE;
       }
@@ -184,7 +184,7 @@ sample <- function(x,
   #   Recursivity with x = current_custer_table and partition = NULL
   # ----------------------------------------------------------------------
   if(!is.null(partition)) {
-    if(length(partition) != nrow(x)) {
+    if(length(partition) != nrow(x_mat)) {
       stop("length of the partition must be equal to nrow(x)");
     }
     clusters <- sort(unique(partition));

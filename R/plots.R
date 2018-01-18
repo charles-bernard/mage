@@ -272,7 +272,7 @@ plot_individuals_on_pc <- function(pca_out, my_habillage, PCs = 1:5, ell = FALSE
 #'   (\code{partition_ixs} must be provided)}
 #' }
 #'
-#' @value
+#' @return
 #' Returns a list of plots
 #'
 #' @importFrom graphics par plot
@@ -408,19 +408,22 @@ scatterplot <- function(output_dir, ix, x, y) {
          pch = 19,
          xlab = X_gene,
          ylab = Y_gene,
-         main = paste(X_gene, "Expression vs", Y_gene, "Expression"));
+         main = paste(X_gene, "Expression vs", Y_gene, "Expression"),
+         sub = paste("MIC =", round(x[ix[i], 3], 3)));
     plot(as.numeric(Y_data),
          as.numeric(X_data),
          pch = 19,
          xlab = Y_gene,
          ylab = X_gene,
-         main = paste(Y_gene, "Expression vs", X_gene, "Expression"));
+         main = paste(Y_gene, "Expression vs", X_gene, "Expression"),
+         sub = paste("MIC =", round(x[ix[i], 3], 3)));
     plot(log2(as.numeric(X_data)+1),
          log2(as.numeric(Y_data)+1),
          pch = 19,
          xlab = X_gene,
          ylab = Y_gene,
-         main = paste("log2(", X_gene, "Expression ) vs log2(", Y_gene, "Expression )"));
+         main = paste("log2(", X_gene, "Expression ) vs log2(", Y_gene, "Expression )"),
+         sub = paste("MIC =", round(x[ix[i], 3], 3)));
     junk <- dev.off();
   }
 }
