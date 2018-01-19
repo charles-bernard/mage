@@ -1,6 +1,6 @@
 # mage R package
 
-# a series of functions wrapped in a function to explore each cluster
+# a series of functions wrapped to explore each cluster
 # as a tree
 
 # recquired internal function 1:
@@ -30,6 +30,7 @@ get_clust_starting_pt <- function(scores_mat, partition) {
 # ------------------------------------------------------------------
 construct_tree <- function(scores_mat, partition) {
   clusters <- sort(unique(partition));
+
   clusters_tree <- list();
   for(i in 1:length(clusters)) {
     curr_clust <- clusters[i]
@@ -50,6 +51,7 @@ construct_tree <- function(scores_mat, partition) {
     # Last tree of the list is the average of all bootstrapped trees
     clusters_tree[[i]] <- conservative_trees[[length(conservative_trees)]];
   }
+
   names(clusters_tree) <- clusters;
   return(clusters_tree);
 }
@@ -61,6 +63,7 @@ construct_tree <- function(scores_mat, partition) {
 get_tree_info <- function(scores_mat, partition, trees) {
   clusters <- sort(unique(partition));
   clusters_tree_info <- list();
+
   for(i in 1:length(clusters)) {
     curr_clust <- clusters[i]
     curr_clust_data <- scores_mat[which(partition == curr_clust), ];
@@ -90,6 +93,7 @@ get_tree_info <- function(scores_mat, partition, trees) {
     clusters_tree_info[[i]]$pt_nodes <- pt_nodes; rm(pt_nodes);
     clusters_tree_info[[i]]$pt_br_brpt <- pt_br_brpt; rm(pt_br_brpt);
   }
+
   names(clusters_tree_info) <- clusters;
   return(clusters_tree_info);
 }
@@ -103,6 +107,7 @@ create_classification_template <- function(outdir, trees_info) {
   n_clusters <- length(trees_info);
   clusters <- names(trees_info);
   clusters_vector <- branches_vector <- nodes_vector <- NULL;
+
   for(i in 1:n_clusters) {
     n_nodes <- length(V(trees_info[[i]]$tree_graph));
     clusters_vector <- c(clusters_vector, rep(clusters[i], n_nodes));
@@ -110,11 +115,13 @@ create_classification_template <- function(outdir, trees_info) {
     nodes_vector <- c(nodes_vector, as.character(1:n_nodes));
   }
   class_vector <- rep("", length(nodes_vector));
+
   class_template <- data.table(
     `Cluster` = clusters_vector,
     `Branch` = branches_vector,
     `Node` = nodes_vector,
     `Classification` = class_vector);
+
   fwrite(class_template,
          file = file.path(outdir, 'associations_classification_template.csv'),
          sep = ",", col.names = TRUE);
@@ -136,7 +143,7 @@ create_subdir <- function(main_dir, subdirname) {
 # Visit the tree of the current cluster from branches to adjacent branches
 # Starting from the node which is the nearest to the centroid of the population
 # At each branch or branching points, the function creates a directory
-# as well as a node subdirectories in which scatterplots of associated points are produced
+# as well as node subdirectories in which scatterplots of associated points are produced
 # It results from this function an arboresence of directories
 # identical to the one of the ElPiGraph Tree
 # ------------------------------------------------------------------
@@ -184,7 +191,7 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
     }
   }
 
-  # Get adjacent node(s) to curr node:
+  # Get adjacent node(s) to current node:
   adj_nodes <- adjacent_vertices(tree_info$tree_graph, node)[[1]];
 
   # Recursivity on adjacent nodes
@@ -211,7 +218,7 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 #'
 #' @description Given a table of scores and its partition into k clusters,
 #' the function \code{explore_clusters} proposes to explore the types
-#' of associations lying within the clusters.
+#' of associations lying within each cluster.
 #'
 #' To do so, the function measures the dispersion of the associations of each
 #' cluster in the space of the scores and depicts this heterogeneity
@@ -219,7 +226,7 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 #' For instance, nodes along a same branch will be expected to exhibit
 #' similar types of associations.
 #'
-#' Then, the function will visit the tree to create an arborescence of
+#' Then, the function will visit the tree of each cluster to create an arborescence of
 #' directories starting from the root (the root is defined
 #' as the branch which is the closest to the centroid of the table of scores)
 #' and expanding from adjacent branches to adjacent branches.
@@ -227,6 +234,13 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 #' Inside each directory corresponding to a branch (or a branching point),
 #' the function will produce the scatterplots of a few sampled assocations in order
 #' for the user to get a glimpse of what type of associations each branch is related to.
+#'
+#' By visiting this arborescence of directories and visualizing
+#' some of the scatterplots of the associations each branch is related to,
+#' it enables one to somehow "wander" along a cluster's tree and appreciate the
+#' "evolution" of the "shape/type" of the associations from branches to branches
+#'
+#' With this regard, this function
 #'
 #' @param scores_tab data.table; the table of scores
 #' @param partition categorial vector; the partition of the \code{scores_tab} into k clusters.
@@ -256,16 +270,31 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
                              sampling_method = "downsampling", target_ratio = .8,
                              output_directory = "/home/charles/test") {
 
+  # Create a matrix of scores (SPEARMAN rho is ignored) from the table of scores
+  # -----------------------------------------------------------------
   scores_mat <- data.matrix(scores_tab[, c("MIC (strength)", "MIC-R2 (nonlinearity)", "MAS (non-monotonicity)",
                                   "MCN (complexity)", "PEARSON coeff (linear correlation)")]);
+
+  # Identify clusters from partition
+  # -----------------------------------------------------------------
   clusters <- sort(unique(partition));
 
+  # Build a robust tree (resulting averaged tree from bootstrapping)
+  # that captures the heterogeneity of each cluster
+  # -----------------------------------------------------------------
   trees <- construct_tree(scores_mat, partition);
+
+  # Get relationships between branches, nodes and points of each tree
+  # -----------------------------------------------------------------
   trees_info <- get_tree_info(scores_mat, partition, trees);
+
+  # Get the root point of each tree
+  # -----------------------------------------------------------------
   trees_starting_pt <- get_clust_starting_pt(scores_mat, partition);
 
+  # Sample a few points within each node of each tree
+  # -----------------------------------------------------------------
   trees_sampling <- list();
-  # Sample points within each node
   for(i in 1:length(clusters)) {
     trees_sampling[[i]] <-
       sample(scores_tab[partition == clusters[i], ],
@@ -273,32 +302,48 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
              methods = sampling_method, target_ratio = target_ratio);
   }
 
-
+  # This is where the tree exploration begins
+  # -----------------------------------------------------------------
   for(i in 1:length(clusters)) {
-    # Core function to explore each cluster
-    curr_starting_node <- trees_info[[i]]$pt_nodes[trees_starting_pt[[i]]];
-    cluster_dir <- create_subdir(output_directory, paste("Cluster", clusters[i]));
 
-    pdf(file.path(cluster_dir, "cluster_tree.pdf"));
+    # 1. Create a directory for the current cluster
+    # ---------------------------------------------------------------
+    curr_cluster_dir <- create_subdir(output_directory, paste("Cluster", clusters[i]));
+
+    # 2. Find the node whose starting point of the tree is associated to
+    # ---------------------------------------------------------------
+    curr_root_node <- trees_info[[i]]$pt_nodes[trees_starting_pt[[i]]];
+
+    # 3. Plot the tree of the cluster at the root of the cluster directory
+    # ---------------------------------------------------------------
+    pdf(file.path(curr_cluster_dir, "cluster_tree.pdf"));
     p <- PlotPG(X = scores_mat[partition == clusters[i], ], TargetPG = trees[[i]],
-                GroupsLab = trees_info[[i]]$pt_br_brpt, NodeLabels = 1:nrow(trees[[i]]$NodePositions),
-                LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
+                GroupsLab = trees_info[[i]]$pt_br_brpt,
+                NodeLabels = 1:nrow(trees[[i]]$NodePositions),
+                LabMult = 4, DimToPlot = 1:2,
+                PlotProjections = "onNodes", p.alpha = .5);
     plot(p[[1]]);
     junk <- dev.off();
 
+    # 4. Create the arboresence of directories, meanwhile plotting
+    # sampled associations in each node directory (core function)
+    # ---------------------------------------------------------------
     create_and_fill_arborescence (
       scores_tab[partition == clusters[i], ],
       scores_mat[partition == clusters[i], ],
       gene_exp_mat,
-      node = curr_starting_node,
+      node = curr_root_node,
       parent_node = -1, parent_struct = -1,
-      parent_dir = cluster_dir,
+      parent_dir = curr_cluster_dir,
       tree_info = trees_info[[i]],
       tree = trees[[i]],
       sampling_ix = trees_sampling[[i]]);
   }
 
+  # Create the template csv file to help classifying the associations
+  # -----------------------------------------------------------------
   create_classification_template(output_directory, trees_info);
 
+  return(trees_info);
 }
 
