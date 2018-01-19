@@ -31,6 +31,7 @@ URL:
 LinkingTo:
     Rcpp
 Imports:
+    ComplexHeatmap,
     corrplot,
     data.table,
     ElPiGraph.R,
@@ -39,7 +40,6 @@ Imports:
     fpc,
     graphics,
     grDevices,
-    ComplexHeatmap,
     igraph,
     methods,
     minerva,
