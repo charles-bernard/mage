@@ -1,5 +1,8 @@
 # mage R package
 
+# a series of functions wrapped in a function to explore each cluster
+# as a tree
+
 # recquired internal function 1:
 # compute the centroid of the population and for each cluster,
 # define the point which is the nearest to this centroid
@@ -91,6 +94,33 @@ get_tree_info <- function(scores_mat, partition, trees) {
   return(clusters_tree_info);
 }
 
+# recquired internal function 4:
+# Create a tabular file, which will serve as a template to help
+# the user make a comprehensive classification of all the significant
+# associations in his/her dataset
+# ------------------------------------------------------------------
+create_classification_template <- function(outdir, trees_info) {
+  n_clusters <- length(trees_info);
+  clusters <- names(trees_info);
+  clusters_vector <- branches_vector <- nodes_vector <- NULL;
+  for(i in 1:n_clusters) {
+    n_nodes <- length(V(trees_info[[i]]$tree_graph));
+    clusters_vector <- c(clusters_vector, rep(clusters[i], n_nodes));
+    branches_vector <- c(branches_vector, trees_info[[i]]$node_br_brpt);
+    nodes_vector <- c(nodes_vector, as.character(1:n_nodes));
+  }
+  class_vector <- rep("", length(nodes_vector));
+  class_template <- data.table(
+    `Cluster` = clusters_vector,
+    `Branch` = branches_vector,
+    `Node` = nodes_vector,
+    `Classification` = class_vector);
+  fwrite(class_template,
+         file = file.path(outdir, 'associations_classification_template.csv'),
+         sep = ",", col.names = TRUE);
+}
+
+# recquired internal function 5:
 # A simple function for the creation of directories
 # ------------------------------------------------------------------
 create_subdir <- function(main_dir, subdirname) {
@@ -101,6 +131,7 @@ create_subdir <- function(main_dir, subdirname) {
   return(subdir);
 }
 
+# recquired internal function 6:
 # This is the core function
 # Visit the tree of the current cluster from branches to adjacent branches
 # Starting from the node which is the nearest to the centroid of the population
@@ -162,7 +193,7 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
   if(parent_node != -1) {
     adj_nodes <- adj_nodes[-which(adj_nodes == parent_node)];
   }
-  # Do nothing more if current node is a leaf
+  # Do nothing more if current node is a leaf of a visited branch
   if(length(adj_nodes) > 0) {
     for(n in 1:length(adj_nodes)) {
       create_and_fill_arborescence(
@@ -218,8 +249,9 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 #' @param output_directory where to create the arborescence of directories for each cluster
 #'
 #' @importFrom ElPiGraph.R computeElasticPrincipalTree PlotPG ConstructGraph GetSubGraph PartitionData
-#' @importFrom igraph adjacent_vertices vcount
+#' @importFrom igraph adjacent_vertices vcount V
 #' @importFrom stats dist
+#' @importFrom data.table data.table fwrite
 explore_clusters <- function(scores_tab, partition, gene_exp_mat,
                              sampling_method = "downsampling", target_ratio = .8,
                              output_directory = "/home/charles/test") {
@@ -265,6 +297,8 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
       tree = trees[[i]],
       sampling_ix = trees_sampling[[i]]);
   }
+
+  create_classification_template(output_directory, trees_info);
 
 }
 
