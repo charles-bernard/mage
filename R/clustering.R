@@ -44,7 +44,7 @@ get_optimal_k <- function(scores_tab, ix = NULL, cutoff = 0.8, nrep = 20) {
   }
 
   k <- k <- prediction.strength(
-    x, Gmin = 2, Gmax = 10, M = 20, cutoff = cutoff,
+    x, Gmin = 2, Gmax = 10, M = nrep, cutoff = cutoff,
     clustermethod = claraCBI, classification = "centroid")$optimalk;
   return(k);
 }
