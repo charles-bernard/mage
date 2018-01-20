@@ -4,10 +4,10 @@
 \alias{phenograph_clustering}
 \title{phenograph_clustering}
 \usage{
-phenograph_clustering(x, ngb = 50)
+phenograph_clustering(scores_tab, ngb = 50)
 }
 \arguments{
-\item{x}{data.table; the table of scores}
+\item{scores_tab}{data.table; the table of scores}
 
 \item{ngb}{number of nearest neighbours}
 }

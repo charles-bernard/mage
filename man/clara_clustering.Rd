@@ -4,10 +4,10 @@
 \alias{clara_clustering}
 \title{clara_clustering}
 \usage{
-clara_clustering(x, k)
+clara_clustering(scores_tab, k)
 }
 \arguments{
-\item{x}{data.frame; the table of scores}
+\item{scores_tab}{data.table; the table of scores}
 
 \item{k}{desired number of clusters}
 }

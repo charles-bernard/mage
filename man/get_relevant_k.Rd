@@ -4,12 +4,12 @@
 \alias{get_relevant_k}
 \title{get_relevant_k}
 \usage{
-get_relevant_k(x, ix = NULL, kmax = 12)
+get_relevant_k(scores_tab, ix = NULL, kmax = 12)
 }
 \arguments{
-\item{x}{data.frame, the table of scores}
+\item{scores_tab}{data.table, the table of scores}
 
-\item{ix}{boolean vector of indexes to which x must be reduced (sampling output)}
+\item{ix}{boolean vector of indexes to which \code{scores_tab} must be reduced (sampling output)}
 
 \item{kmax}{maximun number of clusters allowed}
 }

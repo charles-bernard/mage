@@ -4,12 +4,12 @@
 \alias{get_optimal_k}
 \title{get_optimal_k}
 \usage{
-get_optimal_k(x, ix = NULL, cutoff = 0.8, nrep = 20)
+get_optimal_k(scores_tab, ix = NULL, cutoff = 0.8, nrep = 20)
 }
 \arguments{
-\item{x}{data.table; the table of scores}
+\item{scores_tab}{data.table; the table of scores}
 
-\item{ix}{boolean vector of indexes to which x must be reduced (sampling output)}
+\item{ix}{boolean vector of indexes to which \code{scores_tab} must be reduced (sampling output)}
 
 \item{cutoff}{cutoff for the prediction strength (recommanded to range from 0.8 up to 0.9)}
 

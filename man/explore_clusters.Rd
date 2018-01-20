@@ -37,20 +37,27 @@ Method recommanded: \code{"downsampling"}}
 \description{
 Given a table of scores and its partition into k clusters,
 the function \code{explore_clusters} proposes to explore the types
-of associations lying within the clusters.
+of associations lying within each cluster.
 
 To do so, the function measures the dispersion of the associations of each
-cluster in the space of the scores and try to depict this heterogeneity
+cluster in the space of the scores and depicts this heterogeneity
 as a tree structure (using ElPiGraph.R package).
 For instance, nodes along a same branch will be expected to exhibit
 similar types of associations.
 
-Then, the function will visit the tree and create an arborescence of
+Then, the function will visit the tree of each cluster to create an arborescence of
 directories starting from the root (the root is defined
 as the branch which is the closest to the centroid of the table of scores)
 and expanding from adjacent branches to adjacent branches.
 
-In each directory corresponding to a branch (or a branching point)
+Inside each directory corresponding to a branch (or a branching point),
 the function will produce the scatterplots of a few sampled assocations in order
 for the user to get a glimpse of what type of associations each branch is related to.
+
+By visiting this arborescence of directories and visualizing
+some of the scatterplots of the associations each branch is related to,
+it enables one to somehow "wander" along a cluster's tree and appreciate the
+"evolution" of the "shape/type" of the associations from branches to branches
+
+With this regard, this function
 }
