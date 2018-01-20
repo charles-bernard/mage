@@ -45,6 +45,8 @@ and clearly distinguishable from noise.
 
 ## What is the output of mage?
 
+... to be written
+
 # Tutorial Presentation
 
 This tutorial provides a quick overview of the different features this package can offer. 
@@ -57,6 +59,26 @@ In a near future, this tutorial will include a series of post-hoc analyses to ex
 output from mage can be used to extract meaningful informations from a biological point of view ...
 
 # Setup
+
+The first step it to load the mage R package as well as the toy dataset that will be used for this tutorial.
+The dataset is a gene expression matrix (raw count) used by the Seurat R package as canonical input for
+the code examples. It is composed of 80 cells for 230 genes. 
+
+
+```r
+# Load the mage library
+library(mage);
+
+# Load the gene expression matrix (raw count) that will be
+# used for this tutorial. 
+data(pbmc_small_raw_data);
+
+# Show all the informations about this dataset:
+help(pbmc_small_raw_data);
+```
+
+This dataset is used as canonical
+# input for the Seurat R package examples.
 
 
 Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
