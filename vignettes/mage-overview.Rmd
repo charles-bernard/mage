@@ -2,9 +2,9 @@
 title: "Mage Overview"
 author: "Charles Bernard"
 date: "2018"
-output: rmarkdown::html_vignette:
-  figcaption: yes
-
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
 ---
 
 ```{r setup, include = FALSE}
@@ -13,6 +13,20 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+
+# Tutorial Presentation
+
+The `mage` package has been designed to capture but foremost to classify any significant association 
+between the expression of 2 genes in a single cell rna sequencing dataset.
+
+This tutorial provides a quick overview of the different features this package can offer. 
+It shows how to compute the strength of the associations of each unique pair of gene from a gene expression
+matrix, how to characterize them and more essentially how to make the most of the variety of the `mage` functions 
+to cluster the different significant associations based on their type of relationships *(i.e linear correlation, 
+non-coexistence, sinusoids ...)*
+
+In a near future, this tutorial will include a series of post-hoc analyses to explain how we can use the standard
+output of mage to extract meaningful informations from a biological point of view..
 
 
 
