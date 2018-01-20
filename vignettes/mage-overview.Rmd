@@ -5,6 +5,10 @@ date: "2018"
 output: 
   rmarkdown::html_vignette:
     fig_caption: yes
+  html_document:
+    depth: 3
+    keep_md: yes
+    number_sections: yes
 ---
 
 ```{r setup, include = FALSE}
@@ -20,14 +24,15 @@ The `mage` package has been designed to capture but foremost to classify any sig
 between the expression of 2 genes in a single cell rna sequencing dataset.
 
 This tutorial provides a quick overview of the different features this package can offer. 
-It shows how to compute the strength of the associations of each unique pair of gene from a gene expression
-matrix, how to characterize them and more essentially how to make the most of the variety of the `mage` functions 
-to cluster the different significant associations based on their type of relationships *(i.e linear correlation, 
-non-coexistence, sinusoids ...)*
+It shows how to compute the strength of the associations of each unique pair of gene from a gene 
+expression matrix, how to characterize them and more essentially how to make the most of the variety 
+of the `mage` functions to cluster the different significant associations based on the type of their 
+relationships *(i.e linear correlation, non-coexistence, sinusoids ...)*
 
-In a near future, this tutorial will include a series of post-hoc analyses to explain how we can use the standard
-output of mage to extract meaningful informations from a biological point of view..
+In a near future, this tutorial will include a series of post-hoc analyses to explain how the standard
+output from mage can be used to extract meaningful informations from a biological point of view ...
 
+# Setup
 
 
 Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
