@@ -24,9 +24,9 @@ and in which each point would represent a cell.
 
 As a matter of example, let us produce three scatterplots:
 
-- one linear correlation
-- one non-coexistence relation
-- one random association
+- a linear correlation
+- a non-coexistence relationship
+- a random relationship
 
 
 ```r
@@ -35,7 +35,7 @@ plot(c(0:4, rep(0,5)), c(rep(0,5), 0:4), xlab = "Gene C", ylab = "Gene D", main 
 plot(runif(10, 0, 10), runif(10, 0, 10), xlab = "Gene E", ylab = "Gene F", main = "Random");
 ```
 
-![](mage-overview_files/figure-html/unnamed-chunk-1-1.png)![](mage-overview_files/figure-html/unnamed-chunk-1-2.png)![](mage-overview_files/figure-html/unnamed-chunk-1-3.png)
+![](mage-overview_files/figure-html/three_scatterplots-1.png)![](mage-overview_files/figure-html/three_scatterplots-2.png)![](mage-overview_files/figure-html/three_scatterplots-3.png)
 
 Intuitevely, we can quickly see that the two first scatterplots result from a meaningful relationship 
 between 2 genes while the third one depict a weaker association.
@@ -50,7 +50,7 @@ and clearly distinguishable from noise.
 This tutorial provides a quick overview of the different features this package can offer. 
 It shows how to compute the strength of the associations of each unique pair of gene from a gene 
 expression matrix, how to characterize them and more essentially how to make the most of the variety 
-of the `mage` functions to cluster the different significant associations based on the type of their 
+of the `mage` functions to cluster the significant associations based on the type of their 
 relationships *(i.e linear correlation, non-coexistence, sinusoids ...)*
 
 In a near future, this tutorial will include a series of post-hoc analyses to explain how the standard
@@ -87,7 +87,7 @@ plot(1:10)
 plot(10:1)
 ```
 
-![](mage-overview_files/figure-html/unnamed-chunk-2-1.png)![](mage-overview_files/figure-html/unnamed-chunk-2-2.png)
+![](mage-overview_files/figure-html/unnamed-chunk-1-1.png)![](mage-overview_files/figure-html/unnamed-chunk-1-2.png)
 
 You can enable figure captions by `fig_caption: yes` in YAML:
 
