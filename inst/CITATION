@@ -1,0 +1,10 @@
+citHeader("To cite mage in publications use:")
+citEntry(entry = "Manual",
+  title = "mage: Mine Associated Gene Expressions (from scRnaSeq datasets)",
+  author = personList(as.person("Charles Bernard")),
+  year = "2018",
+
+  textVersion =
+  paste("Charles Bernard (2018).",
+        "mage: Mine Associated Gene Expressions (from scRnaSeq datasets).")
+)
