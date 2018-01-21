@@ -16,10 +16,10 @@ output:
 The `mage` package has been designed to capture but foremost to classify any significant association 
 between the expression of 2 genes in a single cell rna sequencing dataset.
 
-## What is an association between 2 genes?
+## What does it mean when 2 genes are said to be associated?
 
 The best way to figure yourself out what an association between 2 genes really means would be probably to 
-visualize it as a scatterplot with the x and y axis corresponding to the expression of two genes (say A and B),
+visualize it as a scatterplot with the x and y axis corresponding to their respective expression,
 and in which each point would represent a cell. 
 
 As a matter of example, let us produce three scatterplots:
@@ -38,10 +38,17 @@ plot(runif(10, 0, 10), runif(10, 0, 10), xlab = "Gene E", ylab = "Gene F", main 
 ![](mage-overview_files/figure-html/three_scatterplots-1.png)![](mage-overview_files/figure-html/three_scatterplots-2.png)![](mage-overview_files/figure-html/three_scatterplots-3.png)
 
 Intuitevely, we can quickly see that the two first scatterplots result from a meaningful relationship 
-between 2 genes while the third one depict a weaker association.
+between 2 genes while the third one depict a weaker association. With this respect, the two first gene
+pairs must be considered as "significantly associated". 
 
-By "significantly associated", we therefore mean that 2 genes exhibit a relationship which is "remarkable" 
-and clearly distinguishable from noise. 
+When 2 genes are said to be "significantly associated", this somehow means that their relationship 
+is "remarkable" and clearly distinguishable from noise.
+
+The MINE statistics have been developped first, to estimate the strength of an association between 2 variables
+no matter what type of relationship may link them together and second, to characterize any given association
+by testing some propreties of the shape of the relationship *(non-linearity, complexity, non-monotonicity ...)*.
+
+The `mage` package rely on these statistics to cluster the associations by type of relationships.
 
 ## What is the output of mage?
 
@@ -50,17 +57,17 @@ and clearly distinguishable from noise.
 # Tutorial Presentation
 
 This tutorial provides a quick overview of the different features this package can offer. 
-It shows how to compute the strength of the associations of each unique pair of gene from a gene 
-expression matrix, how to characterize them and more essentially how to make the most of the variety 
-of the `mage` functions to cluster the significant associations based on the type of their 
-relationships *(i.e linear correlation, non-coexistence, sinusoids ...)*
+It shows how to compute the association strength for each unique pair of genes that 
+can be composed from a gene expression matrix, how to characterize them and more essentially 
+how to make the most of the variety of the `mage` functions to cluster the significant associations 
+based on the type of their relationships *(i.e linear correlation, non-coexistence, sinusoids ...)*.
 
 In a near future, this tutorial will include a series of post-hoc analyses to explain how the standard
 output from mage can be used to extract meaningful informations from a biological point of view ...
 
 # Setup
 
-The first step it to load the mage R package as well as the toy dataset that will be used for this tutorial.
+The first step is to load the mage R package as well as the toy dataset that will be used for this tutorial.
 The dataset is a gene expression matrix (raw count) used by the Seurat R package as canonical input for
 the code examples. It is composed of 80 cells for 230 genes. 
 
@@ -72,12 +79,46 @@ library(mage);
 # Load the gene expression matrix (raw count) that will be
 # used for this tutorial. 
 data(pbmc_small_raw_data);
+gene_exp_mat <- pbmc_small_raw_data;
 
 # Show all the informations about this dataset:
 help(pbmc_small_raw_data);
 ```
 
-This dataset is used as canonical
+# Compute the set of MINE scores for all unique gene pairs
+
+Our toy dataset contains 230 genes, which result exactly in $230(230 - 1)/2 = 26335$ unique gene pairs
+
+
+```r
+# Notice that the scores are computed in parallel. 
+scores <- compute_scores(gene_exp_mat,
+                         n.cores = parallel::detectCores() - 1);
+#>  * Compute the MINE scores for all pairs of variables ...
+#>      this may take quite some time ...
+#>  * Compute the Pearson Correlation for all pairs of variables ...
+#>  * Compute the Spearman Correlation for all pairs of variables ...
+
+# MEV happens to be redundant with MIC so we can actually get rid of it
+scores <- scores[, -"MEV (functionality)"];
+```
+
+This is what the table of scores look like
+
+```r
+knitr::kable(scores[1:5, ]);
+```
+
+
+
+X gene    Y gene      MIC (strength)   MIC-p^2 (nonlinearity)   MAS (non-monotonicity)   MCN (complexity)   PEARSON p (linear correlation)   SPEARMAN rho (rank correlation)
+--------  ---------  ---------------  -----------------------  -----------------------  -----------------  -------------------------------  --------------------------------
+TYROBP    FCER1G           0.8447045                0.2892461                0.0369912           2.000000                        0.7452908                         0.8779817
+CST3      LST1             0.8429379                0.6403864                0.1279759           2.584963                        0.4500573                         0.8237421
+HLA-DRA   HLA-DRB1         0.8386994               -0.0659080                0.1139512           2.584963                        0.9511085                         0.8718017
+LYZ       CST3             0.8344578                0.3241772                0.0896524           2.000000                        0.7143393                         0.8303932
+CST3      AIF1             0.8277897                0.7260431                0.1427831           2.584963                        0.3189773                         0.7956390
+
 # input for the Seurat R package examples.
 
 
