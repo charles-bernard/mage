@@ -172,6 +172,9 @@ ix_to_factors <- function(ix, partition) {
     length_factors <- length_factors + nrow(ix[[i]]);
   }
   if(is.null(partition)) {
+    if(is.null(names(ix))) {
+      names(ix) <- "1";
+    }
     partition <- rep(names(ix)[1], length_factors);
   }
 
@@ -192,7 +195,7 @@ ix_to_factors <- function(ix, partition) {
 # ----------------------------------------------------------------------
 plot_individuals_on_pc <- function(pca_out, my_habillage, PCs = 1:5, ell = FALSE) {
   PCs <- sort(PCs);
-  colorscale <- c("grey",
+  colorscale <- c(#"grey",
                   brewer.pal(n = 9, name = "Set1"),
                   brewer.pal(n = 8, name = "Set2"),
                   brewer.pal(n = 8, name = "Accent"));
