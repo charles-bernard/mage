@@ -233,7 +233,7 @@ plot_individuals_on_pc <- function(pca_out, my_habillage, PCs = 1:5, ell = FALSE
                           label = c("var"),
                           col.var = "black",
                           addEllipses = ell,
-                          alpha.var = .6);
+                          alpha.var = .9);
         names(p)[k] <- paste("PC", i, "vs_PC", j, sep = "_");
         k <- k + 1;
       }
