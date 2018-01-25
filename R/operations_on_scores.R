@@ -73,7 +73,7 @@ filter_scores <- function(x,
 #' @return
 #' returns a standardized table of scores
 standardize_scores <- function(x) {
-  std_x <- data.frame(scale(x[, 3:ncol(x)]));
+  std_x <- scale(x[, 3:ncol(x)]);
 
   possible_NA_col <- apply(std_x, 2, function(i) any(is.na(i)));
   if(length(which(possible_NA_col == TRUE)) > 0) {
@@ -81,7 +81,6 @@ standardize_scores <- function(x) {
   }
 
   std_tab <- data.table(x[, 1:2], std_x);
-  colnames(std_tab) <- colnames(x)[-(which(possible_NA_col == TRUE)+2)];
 
   return(std_tab);
 }
