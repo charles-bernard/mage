@@ -65,29 +65,42 @@ get_tree_info <- function(scores_mat, partition, trees, trees_starting_pt) {
   clust_tree_info <- list();
 
   for(i in 1:length(clusters)) {
+
     curr_clust <- clusters[i]
     curr_clust_data <- scores_mat[which(partition == curr_clust), ];
     curr_tree <- trees[[i]];
 
     clust_tree_info[[i]] <- list();
+
     # Associate points to nodes
+    # --------------------------------------------------------------
     pt_nodes <-
       PartitionData(X = curr_clust_data, NodePositions = curr_tree$NodePositions)$Partition;
+
     # Identify root node
+    # --------------------------------------------------------------
     root <- pt_nodes[trees_starting_pt[[i]]];
+
     # igraph network from the ElPiGraph tree structure
+    # --------------------------------------------------------------
     tree_graph <-
       ConstructGraph(PrintGraph = curr_tree);
+
     # Get all trajectories of the tree
+    # --------------------------------------------------------------
     tree_all_traj <-
       GetSubGraph(Net = tree_graph, Structure = 'end2end');
+
     # Deduplicate paths
+    # --------------------------------------------------------------
     tree_traj <- tree_all_traj[sapply(tree_all_traj,
                                       function(x) {any(x[c(1, length(x))] == root)})];
     tree_traj <- lapply(tree_traj, function(x) {
       if(x[1] == root) { return(x) } else { return(rev(x)) }});
     names(tree_traj) <- 1:length(tree_traj);
+
     # Associate nodes to all trajectories they are on
+    # --------------------------------------------------------------
     node_traj <- list();
     for(n in 1:vcount(tree_graph)) {
       trajs <- NULL;
@@ -106,36 +119,8 @@ get_tree_info <- function(scores_mat, partition, trees, trees_starting_pt) {
     clust_tree_info[[i]]$pt_nodes <- pt_nodes;
   }
 
-  names(clusters_tree_info) <- clusters;
-  return(clusters_tree_info);
-}
-
-get_tree_trajectories <- function(scores_mat, partition,
-                                  trees, trees_starting_nodes,
-                                  trees_info) {
-  clusters <- sort(unique(partition));
-  clusters_traj_info <- list();
-
-
-
-  for(i in 1:length(clusters)) {
-    clusters_traj_info[[i]] <- list();
-    tree_e2e <- GetSubGraph(Net = trees_info[[i]]$tree_graph, Structure = 'end2end');
-    root <- trees_starting_nodes[[i]];
-    selpaths <- tree_e2e[sapply(tree_e2e, function(x){any(x[c(1, length(x))] == root)})];
-    selpaths <- lapply(selpaths, function(x) {
-      if(x[1] == root){
-        return(x)
-      } else {
-        return(rev(x))
-      }
-    })
-    clusters_traj_info[[i]]$tree_e2e <- tree_e2e;
-    clusters_traj_info[[i]]$paths <- selpaths;
-  }
-
-
-  return(clusters_traj_info);
+  names(clust_tree_info) <- clusters;
+  return(clust_tree_info);
 }
 
 # recquired internal function 4:
@@ -180,17 +165,19 @@ create_subdir <- function(main_dir, subdirname) {
 
 # recquired internal function 6:
 # This is the core function
-# Visit the tree of the current cluster from branches to adjacent branches
+# Visit the tree of the current cluster from root trajectory to child trajectories
 # Starting from the node which is the nearest to the centroid of the population
-# At each branch or branching points, the function creates a directory
-# as well as node subdirectories in which scatterplots of associated points are produced
-# It results from this function an arboresence of directories
-# identical to the one of the ElPiGraph Tree
+# At each visited node, the function creates a directory
+# in which scatterplots of associated points are produced
+# It results from this function an arboresence of directories which
+# match the trajectory ramifications of the ElPiGraph Tree
 # ------------------------------------------------------------------
-create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
-                                         node = node,
-                                         parent_node = -1, parent_struct = -1, parent_dir,
-                                         tree_info, tree, sampling_ix) {
+create_and_fill_traj <-
+  function(scores_tab, scores_mat, gene_exp_mat,
+           node = node,
+           parent_node = -1, parent_struct = -1, parent_dir,
+           tree_info, tree, sampling_ix) {
+
   # Get branch or branching point of the current node
   node_struct <- tree_info$node_br_brpt[node];
 
@@ -360,22 +347,13 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
   # -----------------------------------------------------------------
   trees <- construct_tree(scores_mat, partition);
 
-  # Get relationships between branches, nodes and points of each tree
-  # -----------------------------------------------------------------
-  trees_info <- get_tree_info(scores_mat, partition, trees);
-
   # Get the root point of each tree
   # -----------------------------------------------------------------
   trees_starting_pt <- get_clust_starting_pt(scores_mat, partition);
-  trees_starting_nodes <- trees_starting_pt;
-  for(i in 1:length(clusters)) {
-    trees_starting_nodes[[i]] <- trees_info[[i]]$pt_nodes[trees_starting_pt[[i]]];
-  }
 
-  # Get the trajectories starting from the root of all trees
-  trees_traj_info <-
-    get_tree_trajectories(scores_mat, partition,
-                          trees, trees_starting_nodes, trees_info);
+  # Get relationships between trajectories, nodes and points of each tree
+  # -----------------------------------------------------------------
+  trees_info <- get_tree_info(scores_mat, partition, trees,  trees_starting_pt);
 
   # Sample a few points within each node of each tree
   # -----------------------------------------------------------------
