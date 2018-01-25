@@ -239,17 +239,21 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 create_and_fill_trajectories <- function(scores_tab, scores_mat, gene_exp_mat,
                                          tree_info, tree, tree_traj,
                                          sampling_ix, dir) {
-  for(i in 1:length(tree_traj$paths)n_paths) {
+  for(i in 1:length(tree_traj$paths)) {
     nodes <- tree_traj$paths[[i]];
     traj_dir <- create_subdir(dir, paste("trajectory_", i, sep = ""));
     for(j in 1:length(nodes)) {
       dirname <- paste("Pos", j, "_Node", nodes[j], sep = "");
-      node_dir <- create_subdir(dir, dirname);
+      node_dir <- create_subdir(traj_dir, dirname);
 
-      # scatterplot of sampled individuals within the node
-      sampled_node_ix <- sampling_ix[[which(names(sampling_ix) == node)]][, 1];
-      if(any(sampled_node_ix)) {
-        scatterplot(node_dir, node_ix[sampled_node_ix], scores_tab, gene_exp_mat);
+      node_ix <- which(tree_info$pt_nodes == nodes[j]);
+
+      if(nodes[j] %in% names(sampling_ix)) {
+        # scatterplot of sampled individuals within the node
+        sampled_node_ix <- sampling_ix[[which(names(sampling_ix) == nodes[j])]][, 1];
+        if(any(sampled_node_ix)) {
+          scatterplot(node_dir, node_ix[sampled_node_ix], scores_tab, gene_exp_mat);
+        }
       }
     }
   }
