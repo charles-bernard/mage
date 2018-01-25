@@ -7,21 +7,21 @@
 # compute the centroid of the population and for each cluster,
 # define the point which is the nearest to this centroid
 # ------------------------------------------------------------------
-get_clust_starting_pt <- function(scores_mat, partition) {
+get_starting_pt <- function(scores_mat, partition) {
   # This is the centroid of the population
   centroid_coord <- colMeans(scores_mat);
 
   clusters <- sort(unique(partition));
-  clusters_starting_pt <- list();
+  clust_starting_pt <- list();
   for(i in 1:length(clusters)) {
     # Find closest point to centroid in the current cluster
     # This will further be used as the starting point for the cluster exploration
     alldist <- as.matrix(dist(rbind(centroid_coord, scores_mat[which(partition == clusters[i]), ])));
     mindist_to_centroid <- sort(alldist[1,-1], index.return = T)$ix;
-    clusters_starting_pt[[i]] <- mindist_to_centroid[1];
+    clust_starting_pt[[i]] <- mindist_to_centroid[1];
   }
-  names(clusters_starting_pt) <- clusters;
-  return(clusters_starting_pt)
+  names(clust_starting_pt) <- clusters;
+  return(clust_starting_pt);
 }
 
 # recquired internal function 2:
@@ -57,41 +57,53 @@ construct_tree <- function(scores_mat, partition) {
 }
 
 # recquired internal function 3:
-# get info about the branches, the branching points and the nodes of each tree
-# and most importantly about the points these structures are associated to
+# get info about the trajectories and the nodes of each tree
+# and most importantly about the points these objects are associated to
 # ------------------------------------------------------------------
-get_tree_info <- function(scores_mat, partition, trees) {
+get_tree_info <- function(scores_mat, partition, trees, trees_starting_pt) {
   clusters <- sort(unique(partition));
-  clusters_tree_info <- list();
+  clust_tree_info <- list();
 
   for(i in 1:length(clusters)) {
     curr_clust <- clusters[i]
     curr_clust_data <- scores_mat[which(partition == curr_clust), ];
     curr_tree <- trees[[i]];
 
-    clusters_tree_info[[i]] <- list();
-    # igraph network from the ElPiGraph tree structure
-    tree_graph <-
-      ConstructGraph(PrintGraph = curr_tree);
-    # Get branches and branching points of the tree
-    tree_br_brpt <-
-      GetSubGraph(Net = tree_graph, Structure = 'branches&bpoints');
-    # Associate nodes to branches or branching points
-    node_br_brpt <- rep("", vcount(tree_graph));
-    for(j in 1:length(tree_br_brpt)) {
-      node_br_brpt[tree_br_brpt[[j]]] <- names(tree_br_brpt)[j];
-    }
+    clust_tree_info[[i]] <- list();
     # Associate points to nodes
     pt_nodes <-
       PartitionData(X = curr_clust_data, NodePositions = curr_tree$NodePositions)$Partition;
-    # Associate points to branches or branching points
-    pt_br_brpt <- node_br_brpt[pt_nodes];
+    # Identify root node
+    root <- pt_nodes[trees_starting_pt[[i]]];
+    # igraph network from the ElPiGraph tree structure
+    tree_graph <-
+      ConstructGraph(PrintGraph = curr_tree);
+    # Get all trajectories of the tree
+    tree_all_traj <-
+      GetSubGraph(Net = tree_graph, Structure = 'end2end');
+    # Deduplicate paths
+    tree_traj <- tree_all_traj[sapply(tree_all_traj,
+                                      function(x) {any(x[c(1, length(x))] == root)})];
+    tree_traj <- lapply(tree_traj, function(x) {
+      if(x[1] == root) { return(x) } else { return(rev(x)) }});
+    names(tree_traj) <- 1:length(tree_traj);
+    # Associate nodes to all trajectories they are on
+    node_traj <- list();
+    for(n in 1:vcount(tree_graph)) {
+      trajs <- NULL;
+      for(t in 1:length(tree_traj)) {
+        if(n %in% tree_traj[[t]]) {
+          trajs <- c(trajs, t);
+        }
+      }
+      node_traj[[n]] <- trajs;
+    }
 
-    clusters_tree_info[[i]]$tree_graph <- tree_graph; rm(tree_graph);
-    clusters_tree_info[[i]]$tree_br_brpt <- tree_br_brpt; rm(tree_br_brpt);
-    clusters_tree_info[[i]]$node_br_brpt <- node_br_brpt; rm(node_br_brpt);
-    clusters_tree_info[[i]]$pt_nodes <- pt_nodes; rm(pt_nodes);
-    clusters_tree_info[[i]]$pt_br_brpt <- pt_br_brpt; rm(pt_br_brpt);
+    clust_tree_info[[i]]$root <- root;
+    clust_tree_info[[i]]$tree_graph <- tree_graph;
+    clust_tree_info[[i]]$tree_traj <- tree_traj;
+    clust_tree_info[[i]]$node_traj <- node_traj;
+    clust_tree_info[[i]]$pt_nodes <- pt_nodes;
   }
 
   names(clusters_tree_info) <- clusters;
@@ -103,6 +115,8 @@ get_tree_trajectories <- function(scores_mat, partition,
                                   trees_info) {
   clusters <- sort(unique(partition));
   clusters_traj_info <- list();
+
+
 
   for(i in 1:length(clusters)) {
     clusters_traj_info[[i]] <- list();
@@ -119,6 +133,8 @@ get_tree_trajectories <- function(scores_mat, partition,
     clusters_traj_info[[i]]$tree_e2e <- tree_e2e;
     clusters_traj_info[[i]]$paths <- selpaths;
   }
+
+
   return(clusters_traj_info);
 }
 
@@ -257,6 +273,20 @@ create_and_fill_trajectories <- function(scores_tab, scores_mat, gene_exp_mat,
       }
     }
   }
+
+
+  node_traj <- list();
+  for(i in 1:vcount(tree_info$tree_graph)) {
+    node_paths <- NULL;
+    for(j in 1:length(tree_traj$paths)) {
+      if(i %in% tree_traj$paths[[j]]) {
+        node_paths <- c(node_paths, j);
+      }
+    }
+    node_traj[[i]] <- node_paths;
+  }
+  NodesID <- rep(0, vcount(tree_info$tree_graph));
+  NodesID[unlist(tree_traj$paths)] <- BrID
 }
 # Wrapper of all the previous internal functions
 # -----------------------------------------------------------------
