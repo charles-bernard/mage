@@ -175,19 +175,22 @@ create_subdir <- function(main_dir, subdirname) {
 create_and_fill_traj <-
   function(scores_tab, scores_mat, gene_exp_mat,
            node = node,
-           parent_node = -1, parent_struct = -1, parent_dir,
+           parent_node = -1, parent_trajs = -1, parent_dir,
            tree_info, tree, sampling_ix) {
 
-  # Get branch or branching point of the current node
-  node_struct <- tree_info$node_br_brpt[node];
+  #parent_dir = root_trajectory
+  # Get all the trajectories of the current node
+  node_trajs <- tree_info$node_traj[[node]];
 
   # Get indexes of the points projected on the current node
   node_ix <- which(tree_info$pt_nodes == node);
 
-  # if we are visiting a different branch from parent's,
-  # create directory with name of current branch
-  if(node_struct != parent_struct) {
-    parent_dir <- create_subdir(parent_dir, node_struct);
+  # if the current node doesn't follow all the same trajectories
+  # as the parent node
+  if(!identical(node_trajs, parent_trajs)) {
+    traj_name <- paste("traj", paste(node_traj[[20]], collapse = "_"), sep = "_"));
+    parent_dir <- create_subdir(parent_dir, traj_name);
+
 
     pdf(file.path(parent_dir, paste("tree_", node_struct, ".pdf", sep = "")));
     pp1 <- PlotPG(X = scores_mat,
