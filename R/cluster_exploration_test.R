@@ -98,6 +98,16 @@ get_tree_info <- function(scores_mat, partition, trees, trees_starting_pt) {
     # --------------------------------------------------------------
     tree_traj <- tree_all_traj[sapply(tree_all_traj,
                                       function(x) {any(x[c(1:length(x))] == root)})];
+
+    # If root node is not a leaf, find nearest leaf from it:
+    # This will be set as the new root
+    # --------------------------------------------------------------
+    root <- tree_traj[[which.min(unlist(lapply(tree_traj,
+                                               function(x) { which(x == root) })))]][1];
+
+
+    # If trajectory ends with the root node, revert its node order
+    # --------------------------------------------------------------
     tree_traj <- lapply(tree_traj, function(x) {
       if(x[1] == root) { return(x) } else { return(rev(x)) }});
     names(tree_traj) <- 1:length(tree_traj);
@@ -204,7 +214,7 @@ create_and_fill_traj <-
     pdf(file.path(parent_dir, paste("tree_", traj_name, ".pdf", sep = "")));
 
     points_on_traj <- unlist(lapply(
-      tree_info$node_traj[tree_info$pt_nodes], function(x) any(x) %in% node_trajs));
+      tree_info$node_traj[tree_info$pt_nodes], function(x) any(x %in% node_trajs)));
     pp1 <- PlotPG(X = scores_mat,
                   Main = paste("Points in", traj_name, "\n"),
                   TargetPG = tree,
@@ -214,7 +224,7 @@ create_and_fill_traj <-
                   PlotProjections = "onNodes", p.alpha = .5);
 
     nodes_on_traj <- unlist(lapply(
-      tree_info$node_traj, function(x) x %in% node_trajs));
+      tree_info$node_traj, function(x) any(x %in% node_trajs)));
     pp2 <- PlotPG(X = scores_mat,
                   Main = paste(traj_name, "\n"),
                   TargetPG = tree,
@@ -231,7 +241,7 @@ create_and_fill_traj <-
     # Get position of the node relative to its trajectories
     # (The node should be at the same position whatever the trajectory it is on)
     # -----------------------------------------------------------------
-    node_position_along_traj <- which(tree_info$tree_traj[[1]] == node);
+    node_position_along_traj <- which(tree_info$tree_traj[[node_trajs[1]]] == node);
     dirname <- paste("Pos", node_position_along_traj, "_Node", node, sep = "");
     node_dir <- create_subdir(parent_dir, dirname);
 
