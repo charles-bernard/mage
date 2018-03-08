@@ -25,14 +25,19 @@ compute_density <- function(x) {
 
 get_boundary <- function(density, target_nb) {
 
-  density_s <- sort(density, decreasing = TRUE);
+  density_s <- sort(density, decreasing = TRUE);;
   cdf <- rev(cumsum(1.0 / density_s));
   boundary <- target_nb / cdf[1];
 
-  # Default solution if target density smaller than any present
-  if(boundary > density_s[length(density_s)]) {
-    targets <- (target_nb - 1:length(density_s)) / cdf;
-    return(targets[which.min(targets - rev(density_s) > 0)]);
+  if(length(density) > 0) {
+    # Default solution if target density smaller than any present
+    if(boundary > density_s[length(density_s)]) {
+      targets <- (target_nb - 1:length(density_s)) / cdf;
+      return(targets[which.min(targets - rev(density_s) > 0)]);
+    }
+  } else {
+    targets <- (target_nb - 1) / cdf;
+    return(targets[which.min(targets > 0)]);
   }
 
   return(boundary);
@@ -129,6 +134,7 @@ sample <- function(x,
     for(curr_method in methods) {
       if(curr_method %in% c("downsampling", "lowsampling", "upsampling")) {
           density <- compute_density(x_mat);
+          if(length(density) == 0) { density = rep(1, nrow(x_mat)); }
           random_proba <- runif(length(density));
           break;
       }

@@ -7,21 +7,22 @@
 # compute the centroid of the population and for each cluster,
 # define the point which is the nearest to this centroid
 # ------------------------------------------------------------------
-get_clust_starting_pt <- function(scores_mat, partition) {
+get_starting_pt <- function(scores_mat, partition) {
   # This is the centroid of the population
   centroid_coord <- colMeans(scores_mat);
 
   clusters <- sort(unique(partition));
-  clusters_starting_pt <- list();
+  clust_starting_pt <- list();
   for(i in 1:length(clusters)) {
     # Find closest point to centroid in the current cluster
     # This will further be used as the starting point for the cluster exploration
+    # ---------------------------------------------------------------
     alldist <- as.matrix(dist(rbind(centroid_coord, scores_mat[which(partition == clusters[i]), ])));
     mindist_to_centroid <- sort(alldist[1,-1], index.return = T)$ix;
-    clusters_starting_pt[[i]] <- mindist_to_centroid[1];
+    clust_starting_pt[[i]] <- mindist_to_centroid[1];
   }
-  names(clusters_starting_pt) <- clusters;
-  return(clusters_starting_pt)
+  names(clust_starting_pt) <- clusters;
+  return(clust_starting_pt);
 }
 
 # recquired internal function 2:
@@ -37,18 +38,20 @@ construct_tree <- function(scores_mat, partition) {
     curr_clust_data <- scores_mat[which(partition == curr_clust), ];
 
     # Build a list of ElPiGraph conservative trees with bootstrapping
+    # ---------------------------------------------------------------
     conservative_trees <- computeElasticPrincipalTree(
       X = curr_clust_data,
       # Do not proceed to dimensionality reduction
       Do_PCA = FALSE,
       Mu = 1, Lambda = .01,
-      NumNodes = 30, MaxNumberOfIterations = 20,
+      NumNodes = 30, MaxNumberOfIterations = 50,
       # Bootstrapping Parameters
       nReps = 10, ProbPoint = .9,
       # Avoid default graphical output}
       drawAccuracyComplexity = FALSE, drawEnergy = FALSE, drawPCAView = FALSE);
 
     # Last tree of the list is the average of all bootstrapped trees
+    # ----------------------------------------------------------------
     clusters_tree[[i]] <- conservative_trees[[length(conservative_trees)]];
   }
 
@@ -57,45 +60,80 @@ construct_tree <- function(scores_mat, partition) {
 }
 
 # recquired internal function 3:
-# get info about the branches, the branching points and the nodes of each tree
-# and most importantly about the points these structures are associated to
+# get info about the trajectories and the nodes of each tree
+# and most importantly about the points these objects are associated to
 # ------------------------------------------------------------------
-get_tree_info <- function(scores_mat, partition, trees) {
+get_tree_info <- function(scores_mat, partition, trees, trees_starting_pt) {
   clusters <- sort(unique(partition));
-  clusters_tree_info <- list();
+  clust_tree_info <- list();
 
   for(i in 1:length(clusters)) {
+
     curr_clust <- clusters[i]
     curr_clust_data <- scores_mat[which(partition == curr_clust), ];
     curr_tree <- trees[[i]];
 
-    clusters_tree_info[[i]] <- list();
-    # igraph network from the ElPiGraph tree structure
-    tree_graph <-
-      ConstructGraph(PrintGraph = curr_tree);
-    # Get branches and branching points of the tree
-    tree_br_brpt <-
-      GetSubGraph(Net = tree_graph, Structure = 'branches&bpoints');
-    # Associate nodes to branches or branching points
-    node_br_brpt <- rep("", vcount(tree_graph));
-    for(j in 1:length(tree_br_brpt)) {
-      node_br_brpt[tree_br_brpt[[j]]] <- names(tree_br_brpt)[j];
-    }
+    clust_tree_info[[i]] <- list();
+
     # Associate points to nodes
+    # --------------------------------------------------------------
     pt_nodes <-
       PartitionData(X = curr_clust_data, NodePositions = curr_tree$NodePositions)$Partition;
-    # Associate points to branches or branching points
-    pt_br_brpt <- node_br_brpt[pt_nodes];
 
-    clusters_tree_info[[i]]$tree_graph <- tree_graph; rm(tree_graph);
-    clusters_tree_info[[i]]$tree_br_brpt <- tree_br_brpt; rm(tree_br_brpt);
-    clusters_tree_info[[i]]$node_br_brpt <- node_br_brpt; rm(node_br_brpt);
-    clusters_tree_info[[i]]$pt_nodes <- pt_nodes; rm(pt_nodes);
-    clusters_tree_info[[i]]$pt_br_brpt <- pt_br_brpt; rm(pt_br_brpt);
+    # Identify root node
+    # --------------------------------------------------------------
+    root <- pt_nodes[trees_starting_pt[[i]]];
+
+    # igraph network from the ElPiGraph tree structure
+    # --------------------------------------------------------------
+    tree_graph <-
+      ConstructGraph(PrintGraph = curr_tree);
+
+    # Get all trajectories of the tree
+    # --------------------------------------------------------------
+    tree_all_traj <-
+      GetSubGraph(Net = tree_graph, Structure = 'end2end');
+
+    # Get trajectories with root node within
+    # --------------------------------------------------------------
+    tree_traj <- tree_all_traj[sapply(tree_all_traj,
+                                      function(x) {any(x[c(1:length(x))] == root)})];
+
+    # If root node is not a leaf, find nearest leaf from it:
+    # This will be set as the new root
+    # --------------------------------------------------------------
+    root <- tree_traj[[which.min(unlist(lapply(tree_traj,
+                                               function(x) { which(x == root) })))]][1];
+
+
+    # If trajectory ends with the root node, revert its node order
+    # --------------------------------------------------------------
+    tree_traj <- lapply(tree_traj, function(x) {
+      if(x[1] == root) { return(x) } else { return(rev(x)) }});
+    names(tree_traj) <- 1:length(tree_traj);
+
+    # Associate nodes to all trajectories they are on
+    # --------------------------------------------------------------
+    node_traj <- list();
+    for(n in 1:vcount(tree_graph)) {
+      trajs <- NULL;
+      for(t in 1:length(tree_traj)) {
+        if(n %in% tree_traj[[t]]) {
+          trajs <- c(trajs, t);
+        }
+      }
+      node_traj[[n]] <- trajs;
+    }
+
+    clust_tree_info[[i]]$root <- root;
+    clust_tree_info[[i]]$tree_graph <- tree_graph;
+    clust_tree_info[[i]]$tree_traj <- tree_traj;
+    clust_tree_info[[i]]$node_traj <- node_traj;
+    clust_tree_info[[i]]$pt_nodes <- pt_nodes;
   }
 
-  names(clusters_tree_info) <- clusters;
-  return(clusters_tree_info);
+  names(clust_tree_info) <- clusters;
+  return(clust_tree_info);
 }
 
 # recquired internal function 4:
@@ -129,6 +167,7 @@ create_classification_template <- function(outdir, trees_info) {
 
 # recquired internal function 5:
 # A simple function for the creation of directories
+# returns subdirectory path
 # ------------------------------------------------------------------
 create_subdir <- function(main_dir, subdirname) {
   subdir = file.path(main_dir, subdirname);
@@ -140,58 +179,97 @@ create_subdir <- function(main_dir, subdirname) {
 
 # recquired internal function 6:
 # This is the core function
-# Visit the tree of the current cluster from branches to adjacent branches
+# Visit the tree of the current cluster from root trajectory to child trajectories
 # Starting from the node which is the nearest to the centroid of the population
-# At each branch or branching points, the function creates a directory
-# as well as node subdirectories in which scatterplots of associated points are produced
-# It results from this function an arboresence of directories
-# identical to the one of the ElPiGraph Tree
+# At each visited node, the function creates a directory
+# in which scatterplots of associated points are produced
+# It results from this function an arboresence of directories which
+# match the trajectory ramifications of the ElPiGraph Tree
 # ------------------------------------------------------------------
-create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
-                                         node = node,
-                                         parent_node = -1, parent_struct = -1, parent_dir,
-                                         tree_info, tree, sampling_ix) {
-  # Get branch or branching point of the current node
-  node_struct <- tree_info$node_br_brpt[node];
+create_and_fill_traj <-
+  function(scores_tab, scores_mat, gene_exp_mat,
+           node = node,
+           parent_node = -1, parent_trajs = -1, parent_dir,
+           tree_info, tree, sampling_ix) {
+
+  # Get all the trajectories of the current node
+  # -----------------------------------------------------------------
+  node_trajs <- tree_info$node_traj[[node]];
 
   # Get indexes of the points projected on the current node
+  # -----------------------------------------------------------------
   node_ix <- which(tree_info$pt_nodes == node);
 
-  # if we are visiting a different branch from parent's,
-  # create directory with name of current branch
-  if(node_struct != parent_struct) {
-    parent_dir <- create_subdir(parent_dir, node_struct);
+  # if the current node doesn't follow all the same trajectories
+  # as the parent node (-> we are after a bifurcation)
+  # -----------------------------------------------------------------
+  if(!identical(node_trajs, parent_trajs)) {
+    # get name of the new trajectory(ies)
+    # ---------------------------------------------------------------
+    traj_name <- paste("traj", paste(node_trajs, collapse = "_"), sep = "_");
+    parent_dir <- create_subdir(parent_dir, traj_name);
 
-    pdf(file.path(parent_dir, paste("tree_", node_struct, ".pdf", sep = "")));
+    # Highlight the new trajectory(ies) on the tree
+    # -----------------------------------------------------------------
+    pdf(file.path(parent_dir, paste("tree_", traj_name, ".pdf", sep = "")));
+
+    points_on_traj <- unlist(lapply(
+      tree_info$node_traj[tree_info$pt_nodes], function(x) any(x %in% node_trajs)));
     pp1 <- PlotPG(X = scores_mat,
+                  Main = paste("Points in", traj_name, "\n"),
                   TargetPG = tree,
-                  GroupsLab = tree_info$pt_br_brpt %in% node_struct,
+                  GroupsLab = points_on_traj,
                   NodeLabels = 1:nrow(tree$NodePositions),
-                  LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
+                  LabMult = 4, DimToPlot = 1:2,
+                  PlotProjections = "onNodes", p.alpha = .5);
+
+    nodes_on_traj <- unlist(lapply(
+      tree_info$node_traj, function(x) any(x %in% node_trajs)));
     pp2 <- PlotPG(X = scores_mat,
+                  Main = paste(traj_name, "\n"),
                   TargetPG = tree,
-                  PGCol = V(tree_info$tree_graph) %in%
-                    tree_info$tree_br_brpt[[which(names(tree_info$tree_br_brpt) == node_struct)]],
+                  PGCol = nodes_on_traj,
                   NodeLabels = 1:nrow(tree$NodePositions),
-                  LabMult = 4, DimToPlot = 1:2, PlotProjections = "onNodes", p.alpha = .5);
+                  LabMult = 4, DimToPlot = 1:2,
+                  PlotProjections = "onNodes", p.alpha = .5);
+
     plot(pp1[[1]]); plot(pp2[[1]]);
     junk <- dev.off();
   }
 
   if(node %in% names(sampling_ix)) {
-    # Get position of the node relative to its branch (create dir accordingly)
-    node_position_along_struct <- which(tree_info$tree_br_brpt[[node_struct]] == node);
-    dirname <- paste("Pos", node_position_along_struct, "_Node", node, sep = "");
+    # Get position of the node relative to its trajectories
+    # (The node should be at the same position whatever the trajectory it is on)
+    # -----------------------------------------------------------------
+    node_position_along_traj <- which(tree_info$tree_traj[[node_trajs[1]]] == node);
+    dirname <- paste("Pos", node_position_along_traj, "_Node", node, sep = "");
     node_dir <- create_subdir(parent_dir, dirname);
 
     # scatterplot of sampled individuals within the node
+    # -----------------------------------------------------------------
     sampled_node_ix <- sampling_ix[[which(names(sampling_ix) == node)]][, 1];
-    if(any(sampled_node_ix)) {
-      scatterplot(node_dir, node_ix[sampled_node_ix], scores_tab, gene_exp_mat);
+    if(length(sampled_node_ix) > 0) {
+      if(any(sampled_node_ix, na.rm = TRUE)) {
+        scatterplot(node_dir, node_ix[sampled_node_ix], scores_tab, gene_exp_mat);
+      }
     }
+
+    # Highlight points projected on the node
+    # -----------------------------------------------------------------
+    pdf(file.path(node_dir, paste("0_", dirname, ".pdf", sep = "")));
+    pp3 <- PlotPG(X = scores_mat,
+                  Main = dirname,
+                  TargetPG = tree,
+                  GroupsLab = tree_info$pt_nodes %in% node,
+                  NodeLabels = 1:nrow(tree$NodePositions),
+                  LabMult = 4, DimToPlot = 1:2,
+                  PlotProjections = "onNodes", p.alpha = .5);
+    plot(pp3[[1]]);
+    junk <- dev.off();
   }
 
   # Get adjacent node(s) to current node:
+  # -----------------------------------------------------------------
   adj_nodes <- adjacent_vertices(tree_info$tree_graph, node)[[1]];
 
   # Recursivity on adjacent nodes
@@ -200,13 +278,14 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
   if(parent_node != -1) {
     adj_nodes <- adj_nodes[-which(adj_nodes == parent_node)];
   }
-  # Do nothing more if current node is a leaf of a visited branch
+  # Do nothing more if current node is a leaf (and not a root)
+  # -----------------------------------------------------------------
   if(length(adj_nodes) > 0) {
     for(n in 1:length(adj_nodes)) {
-      create_and_fill_arborescence(
+      create_and_fill_traj(
         scores_tab, scores_mat, gene_exp_mat,
         node = adj_nodes[n],
-        parent_node = node, parent_struct = node_struct, parent_dir = parent_dir,
+        parent_node = node, parent_trajs = node_trajs, parent_dir = parent_dir,
         tree_info, tree, sampling_ix);
     }
   }
@@ -240,8 +319,6 @@ create_and_fill_arborescence <- function(scores_tab, scores_mat, gene_exp_mat,
 #' it enables one to somehow "wander" along a cluster's tree and appreciate the
 #' "evolution" of the "shape/type" of the associations from branches to branches
 #'
-#' With this regard, this function
-#'
 #' @param scores_tab data.table; the table of scores
 #' @param partition categorial vector; the partition of the \code{scores_tab} into k clusters.
 #' \code{length(partition)} must be equal to \code{nrow(scores_tab)}
@@ -272,8 +349,7 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
 
   # Create a matrix of scores (SPEARMAN rho is ignored) from the table of scores
   # -----------------------------------------------------------------
-  scores_mat <- data.matrix(scores_tab[, c("MIC (strength)", "MIC-R2 (nonlinearity)", "MAS (non-monotonicity)",
-                                  "MCN (complexity)", "PEARSON coeff (linear correlation)")]);
+  scores_mat <- data.matrix(scores_tab[, 3:(ncol(scores_tab)-1)]);
 
   # Identify clusters from partition
   # -----------------------------------------------------------------
@@ -284,13 +360,13 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
   # -----------------------------------------------------------------
   trees <- construct_tree(scores_mat, partition);
 
-  # Get relationships between branches, nodes and points of each tree
-  # -----------------------------------------------------------------
-  trees_info <- get_tree_info(scores_mat, partition, trees);
-
   # Get the root point of each tree
   # -----------------------------------------------------------------
-  trees_starting_pt <- get_clust_starting_pt(scores_mat, partition);
+  trees_starting_pt <- get_starting_pt(scores_mat, partition);
+
+  # Get relationships between trajectories, nodes and points of each tree
+  # -----------------------------------------------------------------
+  trees_info <- get_tree_info(scores_mat, partition, trees,  trees_starting_pt);
 
   # Sample a few points within each node of each tree
   # -----------------------------------------------------------------
@@ -302,7 +378,7 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
              methods = sampling_method, target_ratio = target_ratio);
   }
 
-  # This is where the tree exploration begins
+  # This is where the tree exploration by arborescence begins
   # -----------------------------------------------------------------
   for(i in 1:length(clusters)) {
 
@@ -325,15 +401,16 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
     plot(p[[1]]);
     junk <- dev.off();
 
-    # 4. Create the arboresence of directories, meanwhile plotting
-    # sampled associations in each node directory (core function)
+    # 4. Create arboresence of directories for the trajectories,
+    # meanwhile plotting sampled associations in each node directory
+    # (core function)
     # ---------------------------------------------------------------
-    create_and_fill_arborescence (
+    create_and_fill_traj (
       scores_tab[partition == clusters[i], ],
       scores_mat[partition == clusters[i], ],
       gene_exp_mat,
       node = curr_root_node,
-      parent_node = -1, parent_struct = -1,
+      parent_node = -1, parent_trajs= -1,
       parent_dir = curr_cluster_dir,
       tree_info = trees_info[[i]],
       tree = trees[[i]],
@@ -346,4 +423,11 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
 
   return(trees_info);
 }
+#
+# output_directory = "~/Documents/vignettes_out/";
+# partition = partition;
+# gene_exp_mat = gene_exp_mat;
+# sampling_method = "downsampling";
+# target_ratio = .8;
+# scores_tab = signif_scores;
 
