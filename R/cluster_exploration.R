@@ -401,6 +401,10 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
     plot(p[[1]]);
     junk <- dev.off();
 
+    # Create the template csv file to help classifying the associations
+    # -----------------------------------------------------------------
+    create_classification_template(output_directory, trees_info);
+
     # 4. Create arboresence of directories for the trajectories,
     # meanwhile plotting sampled associations in each node directory
     # (core function)
@@ -416,10 +420,6 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
       tree = trees[[i]],
       sampling_ix = trees_sampling[[i]]);
   }
-
-  # Create the template csv file to help classifying the associations
-  # -----------------------------------------------------------------
-  create_classification_template(output_directory, trees_info);
 
   return(trees_info);
 }
