@@ -46,7 +46,7 @@ construct_tree <- function(scores_mat, partition) {
       Mu = 1, Lambda = .01,
       NumNodes = 30, MaxNumberOfIterations = 50,
       # Bootstrapping Parameters
-      nReps = 10, ProbPoint = .9,
+      # nReps = 10, ProbPoint = .9,
       # Avoid default graphical output}
       drawAccuracyComplexity = FALSE, drawEnergy = FALSE, drawPCAView = FALSE);
 
@@ -149,7 +149,7 @@ create_classification_template <- function(outdir, trees_info) {
   for(i in 1:n_clusters) {
     n_nodes <- length(V(trees_info[[i]]$tree_graph));
     clusters_vector <- c(clusters_vector, rep(clusters[i], n_nodes));
-    branches_vector <- c(branches_vector, trees_info[[i]]$node_br_brpt);
+    branches_vector <- c(branches_vector, trees_info[[i]]$node_traj);
     nodes_vector <- c(nodes_vector, as.character(1:n_nodes));
   }
   class_vector <- rep("", length(nodes_vector));
@@ -163,6 +163,9 @@ create_classification_template <- function(outdir, trees_info) {
   fwrite(class_template,
          file = file.path(outdir, 'associations_classification_template.csv'),
          sep = ",", col.names = TRUE);
+
+  sprintf("A classification file has been produced at %s",
+          file.path(outdir, 'associations_classification_template.csv'));
 }
 
 # recquired internal function 5:
@@ -336,7 +339,9 @@ create_and_fill_traj <-
 #'  }
 #'
 #' Method recommanded: \code{"downsampling"}
-#' @param target_ratio number; fraction of associations to be sampled in each branch
+#' @param target_ratio number; fraction of associations to be sampled in each tree's node
+#' . Argument \code{target_ratio} will be ignored if argument \code{target_nb} is provided
+#' @param target_nb number of associations to be sampled in each tree's node
 #' @param output_directory where to create the arborescence of directories for each cluster
 #'
 #' @importFrom ElPiGraph.R computeElasticPrincipalTree PlotPG ConstructGraph GetSubGraph PartitionData
@@ -344,8 +349,9 @@ create_and_fill_traj <-
 #' @importFrom stats dist
 #' @importFrom data.table data.table fwrite
 explore_clusters <- function(scores_tab, partition, gene_exp_mat,
-                             sampling_method = "downsampling", target_ratio = .8,
-                             output_directory = "/home/charles/test") {
+                             sampling_method = "downsampling",
+                             target_ratio = .3, target_nb = NULL,
+                             output_directory = ".") {
 
   # Create a matrix of scores (SPEARMAN rho is ignored) from the table of scores
   # -----------------------------------------------------------------
@@ -375,7 +381,8 @@ explore_clusters <- function(scores_tab, partition, gene_exp_mat,
     trees_sampling[[i]] <-
       sample(scores_tab[partition == clusters[i], ],
              partition = trees_info[[i]]$pt_nodes,
-             methods = sampling_method, target_ratio = target_ratio);
+             methods = sampling_method,
+             target_ratio = target_ratio, target_nb = target_nb);
   }
 
   # This is where the tree exploration by arborescence begins
