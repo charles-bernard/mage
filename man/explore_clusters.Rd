@@ -5,8 +5,8 @@
 \title{explore_clusters}
 \usage{
 explore_clusters(scores_tab, partition, gene_exp_mat,
-  sampling_method = "downsampling", target_ratio = 0.8,
-  output_directory = "/home/charles/test")
+  sampling_method = "downsampling", target_ratio = 0.3, target_nb = NULL,
+  output_directory = ".")
 }
 \arguments{
 \item{scores_tab}{data.table; the table of scores}
@@ -30,7 +30,10 @@ Methods available:
 
 Method recommanded: \code{"downsampling"}}
 
-\item{target_ratio}{number; fraction of associations to be sampled in each branch}
+\item{target_ratio}{number; fraction of associations to be sampled in each tree's node
+. Argument \code{target_ratio} will be ignored if argument \code{target_nb} is provided}
+
+\item{target_nb}{number of associations to be sampled in each tree's node}
 
 \item{output_directory}{where to create the arborescence of directories for each cluster}
 }
@@ -58,6 +61,4 @@ By visiting this arborescence of directories and visualizing
 some of the scatterplots of the associations each branch is related to,
 it enables one to somehow "wander" along a cluster's tree and appreciate the
 "evolution" of the "shape/type" of the associations from branches to branches
-
-With this regard, this function
 }
